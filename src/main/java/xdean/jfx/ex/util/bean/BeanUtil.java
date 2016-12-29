@@ -1,7 +1,6 @@
 package xdean.jfx.ex.util.bean;
 
-import static xdean.jex.util.task.TaskUtil.uncatch;
-import static xdean.jex.util.task.TaskUtil.uncheck;
+import static xdean.jex.util.task.TaskUtil.*;
 import static xdean.jfx.ex.util.bean.BeanConvertUtil.normalize;
 
 import java.lang.ref.WeakReference;
@@ -155,14 +154,17 @@ public class BeanUtil {
     enhancer.setCallback(new MethodInterceptor() {
       @Override
       public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
-        if (Property.class.isAssignableFrom(method.getReturnType())) {
-          return CacheUtil.cache(p, method.getName(),
-              () -> normalize(nestProp(p, t -> uncheck(() -> (Property<Object>) method.invoke(t, args))), method.getReturnType()));
-        } else if (ObservableValue.class.isAssignableFrom(method.getReturnType())) {
-          return CacheUtil.cache(p, method.getName(), () -> nestValue(p, t -> uncheck(() -> (ObservableValue<Object>) method.invoke(t, args))));
-        } else {
-          return proxy.invokeSuper(obj, args);
+        if (method.getName().endsWith("Property")) {
+          Object result = firstSuccess(
+              () -> CacheUtil.cache(p, method.toString(),
+                  () -> normalize(nestProp(p, t -> uncheck(() -> (Property<Object>) method.invoke(t, args))), method.getReturnType())),
+              () -> CacheUtil.cache(p, method.toString(),
+                  () -> nestValue(p, t -> uncheck(() -> (ObservableValue<Object>) method.invoke(t, args)))));
+          if (result != null) {
+            return result;
+          }
         }
+        return proxy.invokeSuper(obj, args);
       }
     });
     return (T) enhancer.create();

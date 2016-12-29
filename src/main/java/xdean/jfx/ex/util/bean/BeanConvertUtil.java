@@ -131,17 +131,17 @@ public interface BeanConvertUtil {
 
   @SuppressWarnings("unchecked")
   static Object normalize(Property<?> prop, Class<?> clz) {
-    if (clz.equals(IntegerProperty.class)) {
+    if (clz.isAssignableFrom(IntegerProperty.class)) {
       return toInteger((Property<Integer>) prop);
-    } else if (clz.equals(LongProperty.class)) {
+    } else if (clz.isAssignableFrom(LongProperty.class)) {
       return toLong((Property<Long>) prop);
-    } else if (clz.equals(FloatProperty.class)) {
+    } else if (clz.isAssignableFrom(FloatProperty.class)) {
       return toFloat((Property<Float>) prop);
-    } else if (clz.equals(DoubleProperty.class)) {
+    } else if (clz.isAssignableFrom(DoubleProperty.class)) {
       return toDouble((Property<Double>) prop);
-    } else if (clz.equals(StringProperty.class)) {
+    } else if (clz.isAssignableFrom(StringProperty.class)) {
       return toString((Property<String>) prop);
-    } else if (clz.equals(ObjectProperty.class)) {
+    } else if (clz.isAssignableFrom(ObjectProperty.class)) {
       return toObject((Property<Object>) prop);
     }
     return prop;
