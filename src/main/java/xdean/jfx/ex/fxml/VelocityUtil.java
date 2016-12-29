@@ -9,7 +9,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
-public class VelocityUtil {
+class VelocityUtil {
   private static final VelocityEngine VELOCITY_ENGINE;
   static {
     VELOCITY_ENGINE = new VelocityEngine();

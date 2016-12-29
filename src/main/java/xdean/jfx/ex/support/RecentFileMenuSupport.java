@@ -43,10 +43,6 @@ public abstract class RecentFileMenuSupport {
     _load();
   }
 
-  /**
-   * 
-   * @return String like "file1, file2, file3"
-   */
   public abstract List<String> load();
 
   public abstract void save(List<String> s);

@@ -2,7 +2,7 @@ package xdean.jfx.ex.util.bean;
 
 import static xdean.jex.util.task.TaskUtil.uncatch;
 import static xdean.jex.util.task.TaskUtil.uncheck;
-import static xdean.jfx.ex.util.bean.BeanConvertUtil.*;
+import static xdean.jfx.ex.util.bean.BeanConvertUtil.normalize;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
@@ -115,30 +115,6 @@ public class BeanUtil {
     };
   }
 
-  public interface MapableValue<T> extends ObservableValue<T> {
-    public <P> MapableValue<P> map(Function<T, P> func);
-  }
-
-  private static abstract class SimpleMapableValue<T> extends ObjectBinding<T> implements MapableValue<T> {
-    @Override
-    public <P> MapableValue<P> map(Function<T, P> func) {
-      return BeanUtil.map(this, func);
-    }
-  }
-
-  public static <F, T> MapableValue<T> map(ObservableValue<F> ov, Function<F, T> func) {
-    return new SimpleMapableValue<T>() {
-      {
-        bind(ov);
-      }
-
-      @Override
-      protected T computeValue() {
-        return uncatch(() -> func.apply(ov.getValue()));
-      };
-    };
-  }
-
   public static <F, T> Property<T> nestProp(ObservableValue<F> pf, Function<F, Property<T>> func) {
     return new SimpleObjectProperty<T>() {
       {
@@ -190,6 +166,30 @@ public class BeanUtil {
       }
     });
     return (T) enhancer.create();
+  }
+
+  public interface MapableValue<T> extends ObservableValue<T> {
+    public <P> MapableValue<P> map(Function<T, P> func);
+  }
+
+  private static abstract class SimpleMapableValue<T> extends ObjectBinding<T> implements MapableValue<T> {
+    @Override
+    public <P> MapableValue<P> map(Function<T, P> func) {
+      return BeanUtil.map(this, func);
+    }
+  }
+
+  public static <F, T> MapableValue<T> map(ObservableValue<F> ov, Function<F, T> func) {
+    return new SimpleMapableValue<T>() {
+      {
+        bind(ov);
+      }
+
+      @Override
+      protected T computeValue() {
+        return uncatch(() -> func.apply(ov.getValue()));
+      };
+    };
   }
 
   public static <F, T> ObservableList<T> map(ObservableList<F> list, Function<F, T> forward, Function<T, F> backward) {

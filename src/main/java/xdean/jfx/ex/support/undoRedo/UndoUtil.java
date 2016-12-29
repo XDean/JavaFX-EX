@@ -9,6 +9,7 @@ import java.util.function.Predicate;
 
 import xdean.jfx.ex.support.undoRedo.Undoable.Response;
 
+//TODO Exception?
 public class UndoUtil {
   public static <O, T> Function<T, Response> weakConsumer(O weakObject, BiConsumer<O, T> func) {
     Weak<O> weak = new Weak<O>(weakObject);

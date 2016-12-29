@@ -25,14 +25,6 @@ public class Fxml2Controller {
     Files.write(javaFile, text.getBytes());
   }
 
-  // private static Pattern importPattern = Pattern.compile("<?import (.*?)?>");
-  // private static Pattern classPattern =
-  // Pattern.compile("fx:controller\\s*=\\s*\"(.*?)\"");
-  // private static Pattern idPattern =
-  // Pattern.compile("fx:id\\s*=\\s*\"(.*?)\"");
-  // private static Pattern actionPattern =
-  // Pattern.compile("(on.*?)\\s*=\\s*\"#(.*?)\"");
-
   public static FxmlEntity convert(Path path) throws IOException {
     FxmlEntity fxml = new FxmlEntity();
     fxml.setFields(new HashMap<>());

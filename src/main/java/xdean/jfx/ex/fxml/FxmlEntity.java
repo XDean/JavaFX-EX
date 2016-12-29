@@ -3,7 +3,7 @@ package xdean.jfx.ex.fxml;
 import java.util.List;
 import java.util.Map;
 
-public class FxmlEntity {
+class FxmlEntity {
   String packageName;
   String className;
   List<String> imports;
