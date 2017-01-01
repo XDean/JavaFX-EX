@@ -1,6 +1,7 @@
 package xdean.jfx.ex.support;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -71,7 +72,14 @@ public abstract class RecentFileMenuSupport {
     if (recents.size() == 0) {
       return new File(".");
     } else {
-      return recents.get(recents.size() - 1).getKey();
+      Pair<File, MenuItem> pair = recents.remove(recents.size() - 1);
+      File file = pair.getKey();
+      if (Files.exists(file.toPath())) {
+        return file;
+      } else {
+        recents.remove(pair);
+        return getLastFile();
+      }
     }
   }
 

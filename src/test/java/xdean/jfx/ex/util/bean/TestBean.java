@@ -2,8 +2,10 @@ package xdean.jfx.ex.util.bean;
 
 import static xdean.jfx.ex.util.bean.BeanUtil.nestWrap;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
 import org.junit.Test;
 
@@ -31,17 +33,17 @@ public class TestBean {
 }
 
 class NestClass {
-  CustomProp text = new CustomProp();
+  StringProperty text = new SimpleStringProperty();
 
   public NestClass() {
   }
 
-  public CustomProp textProperty() {
+  public ReadOnlyStringProperty textProperty() {
     return text;
   }
 
   public void setText(String st) {
-    textProperty().setValue(st);
+    ((StringProperty) textProperty()).setValue(st);
   }
 }
 
