@@ -24,6 +24,8 @@ public class DragSupport {
     DoubleProperty maxXProperty();
 
     DoubleProperty maxYProperty();
+
+    void doOnDrag(Runnable r);
   }
 
   private interface DragHandle extends DragConfig {
@@ -32,24 +34,61 @@ public class DragSupport {
     void drag(MouseEvent e);
   }
 
-  private static class NodeDrag implements DragHandle {
-    final WeakReference<Node> nodeRef;
+  private static abstract class BaseDrag<T> implements DragHandle {
+    final WeakReference<T> ref;
     final DoubleProperty maxX;
     final DoubleProperty maxY;
     final BooleanProperty enable;
     double startX;
     double startY;
+    Runnable doOnDrag = () -> getClass();
 
-    public NodeDrag(Node node) {
-      this.nodeRef = new WeakReference<>(node);
+    public BaseDrag(T t) {
+      this.ref = new WeakReference<>(t);
       this.maxX = new SimpleDoubleProperty(Double.MAX_VALUE);
       this.maxY = new SimpleDoubleProperty(Double.MAX_VALUE);
       this.enable = new SimpleBooleanProperty(true);
     }
+    
+    @Override
+    public void drag(MouseEvent e) {
+     doOnDrag.run();
+    }
+
+    protected boolean isEnable() {
+      return enable.get();
+    }
+
+    @Override
+    public BooleanProperty enableProperty() {
+      return enable;
+    }
+
+    @Override
+    public DoubleProperty maxXProperty() {
+      return maxX;
+    }
+
+    @Override
+    public DoubleProperty maxYProperty() {
+      return maxY;
+    }
+
+    @Override
+    public void doOnDrag(Runnable r) {
+      this.doOnDrag = r;
+    }
+  }
+
+  private static class NodeDrag extends BaseDrag<Node> {
+
+    public NodeDrag(Node node) {
+      super(node);
+    }
 
     @Override
     public void press(MouseEvent e) {
-      Node node = nodeRef.get();
+      Node node = ref.get();
       if (isEnable() && e.isConsumed() == false && node != null) {
         startX = e.getScreenX() - node.getLayoutX();
         startY = e.getScreenY() - node.getLayoutY();
@@ -59,53 +98,25 @@ public class DragSupport {
 
     @Override
     public void drag(MouseEvent e) {
-      Node node = nodeRef.get();
+      super.drag(e);
+      Node node = ref.get();
       if (isEnable() && e.isConsumed() == false && node != null) {
         node.setLayoutX(MathUtil.toRange(e.getScreenX() - startX, 0, maxX.get()));
         node.setLayoutY(MathUtil.toRange(e.getScreenY() - startY, 0, maxY.get()));
         e.consume();
       }
     }
-
-    public boolean isEnable() {
-      return enable.get();
-    }
-
-    @Override
-    public BooleanProperty enableProperty() {
-      return enable;
-    }
-
-    @Override
-    public DoubleProperty maxXProperty() {
-      return maxX;
-    }
-
-    @Override
-    public DoubleProperty maxYProperty() {
-      return maxY;
-    }
   }
 
-  private static class WindowDrag implements DragHandle {
+  private static class WindowDrag extends BaseDrag<Window> {
 
-    final WeakReference<Window> nodeRef;
-    final DoubleProperty maxX;
-    final DoubleProperty maxY;
-    final BooleanProperty enable;
-    double startX;
-    double startY;
-
-    public WindowDrag(Window node) {
-      this.nodeRef = new WeakReference<>(node);
-      this.maxX = new SimpleDoubleProperty(Double.MAX_VALUE);
-      this.maxY = new SimpleDoubleProperty(Double.MAX_VALUE);
-      this.enable = new SimpleBooleanProperty(true);
+    public WindowDrag(Window window) {
+      super(window);
     }
 
     @Override
     public void press(MouseEvent e) {
-      Window node = nodeRef.get();
+      Window node = ref.get();
       if (isEnable() && e.isConsumed() == false && node != null) {
         startX = e.getScreenX() - node.getX();
         startY = e.getScreenY() - node.getY();
@@ -115,33 +126,14 @@ public class DragSupport {
 
     @Override
     public void drag(MouseEvent e) {
-      Window node = nodeRef.get();
+      super.drag(e);
+      Window node = ref.get();
       if (isEnable() && e.isConsumed() == false && node != null) {
         node.setX(MathUtil.toRange(e.getScreenX() - startX, 0, maxX.get()));
         node.setY(MathUtil.toRange(e.getScreenY() - startY, 0, maxY.get()));
         e.consume();
       }
     }
-
-    public boolean isEnable() {
-      return enable.get();
-    }
-
-    @Override
-    public BooleanProperty enableProperty() {
-      return enable;
-    }
-
-    @Override
-    public DoubleProperty maxXProperty() {
-      return maxX;
-    }
-
-    @Override
-    public DoubleProperty maxYProperty() {
-      return maxY;
-    }
-
   }
 
   private static Map<EventTarget, DragHandle> map = new WeakHashMap<>();

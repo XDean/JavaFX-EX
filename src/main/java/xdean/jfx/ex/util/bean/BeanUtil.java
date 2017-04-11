@@ -122,7 +122,7 @@ public class BeanUtil {
           if (pt == null) {
             return;
           }
-          CacheUtil.<SimpleObjectProperty<T>, Property<T>> remove(BeanUtil.class, this).ifPresent(p -> this.unbindBidirectional(p));
+          CacheUtil.<Property<T>> remove(BeanUtil.class, this).ifPresent(p -> this.unbindBidirectional(p));
           CacheUtil.set(BeanUtil.class, this, pt);
           this.bindBidirectional(pt);
         });
@@ -138,7 +138,7 @@ public class BeanUtil {
           if (pt == null) {
             return;
           }
-          CacheUtil.<SimpleObjectProperty<T>, ObservableValue<T>> remove(BeanUtil.class, this).ifPresent(p -> this.unbind());
+          CacheUtil.<ObservableValue<T>> remove(BeanUtil.class, this).ifPresent(p -> this.unbind());
           CacheUtil.set(BeanUtil.class, this, pt);
           this.bind(pt);
         });
