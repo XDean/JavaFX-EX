@@ -3,29 +3,22 @@ package xdean.jfx.ex.util.bean;
 import static xdean.jex.util.task.TaskUtil.*;
 import static xdean.jfx.ex.util.bean.BeanConvertUtil.normalize;
 
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.function.Function;
 
-import javafx.beans.WeakListener;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.ObjectBinding;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import xdean.jex.util.cache.CacheUtil;
-import xdean.jex.util.collection.ListUtil;
 
 import com.google.common.annotations.Beta;
-import com.sun.javafx.binding.BidirectionalContentBinding;
 
 public class BeanUtil {
 
@@ -194,73 +187,19 @@ public class BeanUtil {
     };
   }
 
+  /**
+   * @deprecated Use {@link CollectionUtil#map(ObservableList<F>,Function<F, T>,Function<T, F>)} instead
+   */
+  @Deprecated
   public static <F, T> ObservableList<T> map(ObservableList<F> list, Function<F, T> forward, Function<T, F> backward) {
-    ObservableList<T> newList = FXCollections.observableArrayList();
-    newList.setAll(ListUtil.map(list, forward));
-
-    MapToTargetListener<F, T> forwardListener = new MapToTargetListener<>(list, newList, forward);
-    MapToTargetListener<T, F> backwardListener = new MapToTargetListener<>(newList, list, backward);
-    forwardListener.updating.bindBidirectional(backwardListener.updating);
-
-    list.addListener(forwardListener);
-    newList.addListener(backwardListener);
-    return newList;
+    return CollectionUtil.map(list, forward, backward);
   }
 
-  private static class MapToTargetListener<F, T> implements ListChangeListener<F>, WeakListener {
-    WeakReference<ObservableList<F>> sourceList;
-    WeakReference<ObservableList<T>> targetList;
-    Function<F, T> function;
-    BooleanProperty updating = new SimpleBooleanProperty(false);
-
-    public MapToTargetListener(ObservableList<F> sourceList, ObservableList<T> targetList, Function<F, T> function) {
-      this.targetList = new WeakReference<>(targetList);
-      this.sourceList = new WeakReference<>(sourceList);
-      this.function = function;
-    }
-
-    @Override
-    public void onChanged(Change<? extends F> change) {
-      if (updating.get()) {
-        return;
-      }
-      ObservableList<F> sourceList = this.sourceList.get();
-      ObservableList<T> targetList = this.targetList.get();
-      if (sourceList == null || targetList == null) {
-        if (sourceList != null) {
-          sourceList.removeListener(this);
-        }
-        return;
-      }
-      if (updating.get()) {
-        return;
-      }
-      updating.set(true);
-      while (change.next()) {
-        if (change.wasPermutated()) {
-          targetList.remove(change.getFrom(), change.getTo());
-          targetList.addAll(change.getFrom(), ListUtil.map(change.getList().subList(change.getFrom(), change.getTo()), function));
-        } else {
-          if (change.wasRemoved()) {
-            targetList.remove(change.getFrom(), change.getFrom() + change.getRemovedSize());
-          }
-          if (change.wasAdded()) {
-            targetList.addAll(change.getFrom(), ListUtil.map(change.getAddedSubList(), function));
-          }
-        }
-      }
-      updating.set(false);
-    }
-
-    @Override
-    public boolean wasGarbageCollected() {
-      return (sourceList.get() == null) || (targetList.get() == null);
-    }
-  }
-
+  /**
+   * @deprecated Use {@link CollectionUtil#bind(ObservableList<F>,ObservableList<T>,Function<F, T>,Function<T, F>)} instead
+   */
+  @Deprecated
   public static <F, T> void bind(ObservableList<F> list1, ObservableList<T> list2, Function<F, T> forward, Function<T, F> backward) {
-    ObservableList<T> newList1 = map(list1, forward, backward);
-    CacheUtil.set(BeanUtil.class, list1, newList1);
-    BidirectionalContentBinding.bind(newList1, list2);
+    CollectionUtil.bind(list1, list2, forward, backward);
   }
 }
