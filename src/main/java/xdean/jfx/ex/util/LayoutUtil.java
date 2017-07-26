@@ -21,7 +21,7 @@ public class LayoutUtil {
 
   public static <T extends Node> T margin(T t, double left, double right) {
     return margin(t, new Insets(0, right, 0, left));
-  }
+  } 
 
   public static <T extends Region> T prefWidth(T t, double width) {
     t.setPrefWidth(width);
