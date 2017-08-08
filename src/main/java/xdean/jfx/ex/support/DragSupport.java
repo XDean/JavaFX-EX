@@ -1,11 +1,15 @@
 package xdean.jfx.ex.support;
 
+import static xdean.jex.util.function.FunctionAdapter.runnable;
+
 import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.Optional;
 import java.util.WeakHashMap;
+import java.util.function.Consumer;
 
 import xdean.jex.util.calc.MathUtil;
+import xdean.jex.util.function.EmptyFunction;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -25,7 +29,11 @@ public class DragSupport {
 
     DoubleProperty maxYProperty();
 
-    void doOnDrag(Runnable r);
+    default void doOnDrag(Runnable r) {
+      doOnDrag(runnable(r));
+    }
+
+    void doOnDrag(Consumer<MouseEvent> c);
   }
 
   private interface DragHandle extends DragConfig {
@@ -41,7 +49,7 @@ public class DragSupport {
     final BooleanProperty enable;
     double startX;
     double startY;
-    Runnable doOnDrag = () -> getClass();
+    Consumer<MouseEvent> doOnDrag = EmptyFunction.consumer();
 
     public BaseDrag(T t) {
       this.ref = new WeakReference<>(t);
@@ -49,10 +57,10 @@ public class DragSupport {
       this.maxY = new SimpleDoubleProperty(Double.MAX_VALUE);
       this.enable = new SimpleBooleanProperty(true);
     }
-    
+
     @Override
     public void drag(MouseEvent e) {
-     doOnDrag.run();
+      doOnDrag.accept(e);
     }
 
     protected boolean isEnable() {
@@ -75,7 +83,7 @@ public class DragSupport {
     }
 
     @Override
-    public void doOnDrag(Runnable r) {
+    public void doOnDrag(Consumer<MouseEvent> r) {
       this.doOnDrag = r;
     }
   }
