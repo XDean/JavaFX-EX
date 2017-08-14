@@ -1,6 +1,6 @@
 package xdean.jfx.ex.support;
 
-import static xdean.jex.util.function.FunctionAdapter.runnable;
+import static xdean.jex.util.function.FunctionAdapter.consumer;
 
 import java.lang.ref.WeakReference;
 import java.util.Map;
@@ -8,8 +8,6 @@ import java.util.Optional;
 import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
-import xdean.jex.util.calc.MathUtil;
-import xdean.jex.util.function.EmptyFunction;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -19,6 +17,8 @@ import javafx.event.EventTarget;
 import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Window;
+import xdean.jex.util.calc.MathUtil;
+import xdean.jex.util.function.EmptyFunction;
 
 public class DragSupport {
 
@@ -30,7 +30,7 @@ public class DragSupport {
     DoubleProperty maxYProperty();
 
     default void doOnDrag(Runnable r) {
-      doOnDrag(runnable(r));
+      doOnDrag(consumer(r));
     }
 
     void doOnDrag(Consumer<MouseEvent> c);

@@ -1,9 +1,6 @@
 package xdean.jfx.ex.util.bean;
 
 import static xdean.jex.util.task.TaskUtil.andFinal;
-
-import com.sun.javafx.binding.BidirectionalBinding;
-
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.binding.FloatBinding;
 import javafx.beans.binding.IntegerBinding;
@@ -24,6 +21,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
+
+import com.sun.javafx.binding.BidirectionalBinding;
 
 public interface BeanConvertUtil {
 
