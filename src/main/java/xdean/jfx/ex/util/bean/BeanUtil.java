@@ -18,6 +18,7 @@ import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import xdean.jex.util.cache.CacheUtil;
+import xdean.jex.util.lang.ExceptionUtil;
 
 import com.google.common.annotations.Beta;
 
@@ -113,7 +114,7 @@ public class BeanUtil {
     return new SimpleObjectProperty<T>() {
       {
         pf.addListener((ob, o, n) -> {
-          Property<T> pt = uncatch(() -> func.apply(n));
+          Property<T> pt = ExceptionUtil.uncatch(() -> func.apply(n));
           if (pt == null) {
             return;
           }
@@ -129,7 +130,7 @@ public class BeanUtil {
     return new SimpleObjectProperty<T>() {
       {
         pf.addListener((ob, o, n) -> {
-          ObservableValue<T> pt = uncatch(() -> func.apply(n));
+          ObservableValue<T> pt = ExceptionUtil.uncatch(() -> func.apply(n));
           if (pt == null) {
             return;
           }
@@ -154,10 +155,10 @@ public class BeanUtil {
               () -> CacheUtil.cache(
                   p,
                   method.toString(),
-                  () -> normalize(nestProp(p, t -> uncheck(() -> (Property<Object>) method.invoke(t, args))),
+                  () -> normalize(nestProp(p, t -> ExceptionUtil.uncheck(() -> (Property<Object>) method.invoke(t, args))),
                       method.getReturnType())),
               () -> CacheUtil.cache(p, method.toString(),
-                  () -> nestValue(p, t -> uncheck(() -> (ObservableValue<Object>) method.invoke(t, args)))));
+                  () -> nestValue(p, t -> ExceptionUtil.uncheck(() -> (ObservableValue<Object>) method.invoke(t, args)))));
           if (result != null) {
             return result;
           }
@@ -187,7 +188,7 @@ public class BeanUtil {
 
       @Override
       protected T computeValue() {
-        return uncatch(() -> func.apply(ov.getValue()));
+        return ExceptionUtil.uncatch(() -> func.apply(ov.getValue()));
       };
     };
   }
