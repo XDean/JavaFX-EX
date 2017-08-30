@@ -1,6 +1,6 @@
 package xdean.jfx.ex.util.bean;
 
-import static xdean.jex.util.task.TaskUtil.*;
+import static xdean.jex.util.task.TaskUtil.firstSuccess;
 import static xdean.jfx.ex.util.bean.BeanConvertUtil.normalize;
 
 import java.lang.reflect.Method;

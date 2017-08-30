@@ -46,13 +46,15 @@ public class CollectionUtil {
    * TODO: release position<br>
    * XXX: don't always whole list scan
    *
+   * @deprecated  Serious bug, should be redesign
    * @param list
    * @param element
    * @param pos Index to fix onto. If the position has been fixed by another element, it will be replaced.
    * @throws IllegalArgumentException If the position is not available. For example, if you want to fix an element onto
    *           index 2, there must have an element fixed on the index 0 and 1.
    */
-  public static <T> void fixPosition(ObservableList<T> list, T element, int pos) throws IllegalArgumentException {
+  @Deprecated
+  static <T> void fixPosition(ObservableList<T> list, T element, int pos) throws IllegalArgumentException {
     // Because collection can't be key
     int identityHashCode = System.identityHashCode(list);
     List<T> forward = cache(identityHashCode, "CollectionUtil.fixPosition.forward", () -> new ArrayList<>());
