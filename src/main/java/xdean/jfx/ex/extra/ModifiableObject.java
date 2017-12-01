@@ -49,12 +49,7 @@ public class ModifiableObject {
   }
 
   public <T> void bindModified(ObservableList<T> list) {
-    list.addListener(new ListChangeListener<T>() {
-      @Override
-      public void onChanged(Change<? extends T> c) {
-        modified();
-      }
-    });
+    list.addListener((ListChangeListener<T>) c -> modified());
   }
 
   public void bindModified(ModifiableObject... mcs) {

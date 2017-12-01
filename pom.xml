@@ -17,17 +17,6 @@
 			<version>2.1.1</version>
 		</dependency>
 		<dependency>
-			<groupId>de.jensd</groupId>
-			<artifactId>fontawesomefx</artifactId>
-			<version>8.9</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.velocity</groupId>
-			<artifactId>velocity</artifactId>
-			<version>1.7</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>cglib</groupId>
 			<artifactId>cglib</artifactId>
 			<version>3.2.4</version>
@@ -38,10 +27,22 @@
 			<version>0.0.6.2</version>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.velocity</groupId>
+			<artifactId>velocity</artifactId>
+			<version>1.7</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<version>1.16.14</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.velocity</groupId>
+			<artifactId>velocity</artifactId>
+			<version>1.7</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
