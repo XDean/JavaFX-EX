@@ -3,12 +3,13 @@ package xdean.jfx.ex.util.bean;
 import java.lang.ref.WeakReference;
 import java.util.function.Function;
 
+import com.google.common.collect.Lists;
+
 import javafx.beans.WeakListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import xdean.jex.util.collection.ListUtil;
 
 class MapToTargetListener<F, T> implements ListChangeListener<F>, WeakListener {
   WeakReference<ObservableList<F>> sourceList;
@@ -43,13 +44,13 @@ class MapToTargetListener<F, T> implements ListChangeListener<F>, WeakListener {
       if (change.wasPermutated()) {
         targetList.remove(change.getFrom(), change.getTo());
         targetList.addAll(change.getFrom(),
-            ListUtil.map(change.getList().subList(change.getFrom(), change.getTo()), function));
+            Lists.transform(change.getList().subList(change.getFrom(), change.getTo()), function::apply));
       } else {
         if (change.wasRemoved()) {
           targetList.remove(change.getFrom(), change.getFrom() + change.getRemovedSize());
         }
         if (change.wasAdded()) {
-          targetList.addAll(change.getFrom(), ListUtil.map(change.getAddedSubList(), function));
+          targetList.addAll(change.getFrom(), Lists.transform(change.getAddedSubList(), function::apply));
         }
       }
     }

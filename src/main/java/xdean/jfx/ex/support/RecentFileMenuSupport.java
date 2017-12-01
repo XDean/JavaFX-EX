@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import io.reactivex.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -13,7 +14,6 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
-import rx.Observable;
 
 @Slf4j
 public abstract class RecentFileMenuSupport {
@@ -50,7 +50,7 @@ public abstract class RecentFileMenuSupport {
 
   private void _load() {
     try {
-      Observable.from(load())
+      Observable.fromIterable(load())
           .map(String::trim)
           .filter(s -> s.length() != 0)
           .map(File::new)
