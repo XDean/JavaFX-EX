@@ -5,7 +5,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.WeakHashMap;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.EventHandler;
 import javafx.event.EventTarget;
 import javafx.geometry.HorizontalDirection;
@@ -14,8 +19,21 @@ import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
+import javafx.scene.shape.Rectangle;
 
 public class ResizeSupport {
+
+  public interface ResizeConfig {
+    BooleanProperty enableProperty();
+
+    DoubleProperty borderWidthProperty();
+
+    DoubleProperty minWidthProperty();
+
+    DoubleProperty minHeightProperty();
+
+    ObjectProperty<Cursor> defaultCursorProperty();
+  }
 
   enum Corner {
     UP(Cursor.N_RESIZE, null, VerticalDirection.UP),
@@ -39,12 +57,14 @@ public class ResizeSupport {
     }
   }
 
-  private static final double OFFSET = 3;
-
-  private static class SizeParam {
-    WeakReference<Node> nodeRef;
+  private static class BaseResize extends WeakReference<Node> implements ResizeConfig {
     DoubleProperty width;
     DoubleProperty height;
+    DoubleProperty borderWidth = new SimpleDoubleProperty(3);
+    DoubleProperty minWidth = new SimpleDoubleProperty(10);
+    DoubleProperty minHeight = new SimpleDoubleProperty(10);
+    BooleanProperty enable = new SimpleBooleanProperty(true);
+    ObjectProperty<Cursor> defaultCursor = new SimpleObjectProperty<>(Cursor.DEFAULT);
 
     Cursor lastCursor;
     Corner pressedCorner;
@@ -56,20 +76,26 @@ public class ResizeSupport {
     double startPosX;
     double startPosY;
 
-    public SizeParam(Node node, DoubleProperty width, DoubleProperty height) {
-      super();
-      this.nodeRef = new WeakReference<>(node);
+    public BaseResize(Node node, DoubleProperty width, DoubleProperty height) {
+      super(node);
       this.width = width;
       this.height = height;
+      enable.addListener((ob, o, n) -> {
+        if (n == false) {
+          setCursor(Corner.CENTER);
+        }
+      });
     }
 
     private void move(MouseEvent e) {
-      setCursor(calcCorner(e));
+      if (isEnable()) {
+        setCursor(calcCorner(e));
+      }
     }
 
     private void press(MouseEvent e) {
-      Node node = nodeRef.get();
-      if (e.isConsumed() == false && node != null) {
+      Node node = get();
+      if (isEnable() && e.isConsumed() == false && node != null) {
         Corner corner = calcCorner(e);
         if (corner != Corner.CENTER) {
           pressedCorner = corner;
@@ -85,13 +111,15 @@ public class ResizeSupport {
     }
 
     private void drag(MouseEvent e) {
-      Node node = nodeRef.get();
-      if (pressedCorner != null && e.isConsumed() == false && node != null) {
+      Node node = get();
+      if (isEnable() && pressedCorner != null && e.isConsumed() == false && node != null) {
         double dx = e.getScreenX() - startX;
         if (pressedCorner.horizontal == HorizontalDirection.RIGHT) {
-          width.set(startWidth + dx);
+          if (startWidth + dx > minWidth.get()) {
+            width.set(startWidth + dx);
+          }
         } else if (pressedCorner.horizontal == HorizontalDirection.LEFT) {
-          if (startWidth - dx > node.minWidth(height.get())) {
+          if (startWidth - dx > minWidth.get()) {
             width.set(startWidth - dx);
             node.setLayoutX(startPosX + dx);
           }
@@ -99,9 +127,11 @@ public class ResizeSupport {
 
         double dy = e.getScreenY() - startY;
         if (pressedCorner.vertical == VerticalDirection.DOWN) {
-          height.set(startHeight + dy);
+          if (startHeight + dy > minHeight.get()) {
+            height.set(startHeight + dy);
+          }
         } else if (pressedCorner.vertical == VerticalDirection.UP) {
-          if (startHeight - dy > node.minHeight(width.get())) {
+          if (startHeight - dy > minHeight.get()) {
             height.set(startHeight - dy);
             node.setLayoutY(startPosY + dy);
           }
@@ -115,7 +145,7 @@ public class ResizeSupport {
     }
 
     private void setCursor(Corner corner) {
-      Node node = nodeRef.get();
+      Node node = get();
       if (node == null) {
         return;
       }
@@ -123,7 +153,7 @@ public class ResizeSupport {
         if (lastCursor != null) {
           node.setCursor(lastCursor);
         } else {
-          node.setCursor(corner.cursor);
+          node.setCursor(defaultCursor.get());
         }
         lastCursor = null;
       } else {
@@ -140,66 +170,102 @@ public class ResizeSupport {
       double up = e.getY();
       double down = height.get() - e.getY();
 
-      if (left < OFFSET) {
-        if (up < OFFSET) {
+      double borderWidth = getBorderWidth();
+      if (left < borderWidth) {
+        if (up < borderWidth) {
           return Corner.LEFT_UP;
         }
-        if (down < OFFSET) {
+        if (down < borderWidth) {
           return Corner.LEFT_DOWN;
         }
         return Corner.LEFT;
       }
-      if (right < OFFSET) {
-        if (up < OFFSET) {
+      if (right < borderWidth) {
+        if (up < borderWidth) {
           return Corner.RIGHT_UP;
         }
-        if (down < OFFSET) {
+        if (down < borderWidth) {
           return Corner.RIGHT_DOWN;
         }
         return Corner.RIGHT;
       }
 
-      if (up < OFFSET) {
+      if (up < borderWidth) {
         return Corner.UP;
       }
-      if (down < OFFSET) {
+      if (down < borderWidth) {
         return Corner.DOWN;
       }
       return Corner.CENTER;
     }
+
+    public double getBorderWidth() {
+      return borderWidth.get();
+    }
+
+    public boolean isEnable() {
+      return enable.get();
+    }
+
+    @Override
+    public BooleanProperty enableProperty() {
+      return enable;
+    }
+
+    @Override
+    public DoubleProperty borderWidthProperty() {
+      return borderWidth;
+    }
+
+    @Override
+    public DoubleProperty minWidthProperty() {
+      return minWidth;
+    }
+
+    @Override
+    public DoubleProperty minHeightProperty() {
+      return minHeight;
+    }
+
+    @Override
+    public ObjectProperty<Cursor> defaultCursorProperty() {
+      return defaultCursor;
+    }
   }
 
-  private static Map<EventTarget, SizeParam> map = new WeakHashMap<>();
+  private static Map<EventTarget, BaseResize> map = new WeakHashMap<>();
 
-  public static void bind(Region node) {
-    bind(node, node.prefWidthProperty(), node.prefHeightProperty());
+  public static ResizeConfig bind(Region region) {
+    return bind(region, region.prefWidthProperty(), region.prefHeightProperty());
   }
 
-  public static void bind(Node node, DoubleProperty width, DoubleProperty height) {
+  public static ResizeConfig bind(Rectangle rectangle) {
+    return bind(rectangle, rectangle.widthProperty(), rectangle.heightProperty());
+  }
+
+  public static ResizeConfig bind(Node node, DoubleProperty width, DoubleProperty height) {
     node.addEventHandler(MouseEvent.MOUSE_MOVED, move);
     node.addEventHandler(MouseEvent.MOUSE_PRESSED, press);
     node.addEventHandler(MouseEvent.MOUSE_DRAGGED, drag);
     node.addEventHandler(MouseEvent.MOUSE_RELEASED, release);
-    map.put(node, new SizeParam(node, width, height));
+    BaseResize resize = new BaseResize(node, width, height);
+    map.put(node, resize);
+    return resize;
   }
 
   public static void unbind(Node node) {
     node.removeEventHandler(MouseEvent.MOUSE_MOVED, move);
     node.removeEventHandler(MouseEvent.MOUSE_PRESSED, press);
     node.removeEventHandler(MouseEvent.MOUSE_DRAGGED, drag);
-    node.addEventHandler(MouseEvent.MOUSE_RELEASED, release);
+    node.removeEventHandler(MouseEvent.MOUSE_RELEASED, release);
     map.remove(node);
   }
 
-  private static final EventHandler<MouseEvent> move = e ->
-      Optional.ofNullable(map.get(e.getSource())).ifPresent(d -> d.move(e));
+  private static final EventHandler<MouseEvent> move = e -> Optional.ofNullable(map.get(e.getSource())).ifPresent(d -> d.move(e));
 
-  private static final EventHandler<MouseEvent> press = e ->
-      Optional.ofNullable(map.get(e.getSource())).ifPresent(d -> d.press(e));
+  private static final EventHandler<MouseEvent> press = e -> Optional.ofNullable(map.get(e.getSource())).ifPresent(d -> d.press(e));
 
-  private static final EventHandler<MouseEvent> drag = e ->
-      Optional.ofNullable(map.get(e.getSource())).ifPresent(d -> d.drag(e));
+  private static final EventHandler<MouseEvent> drag = e -> Optional.ofNullable(map.get(e.getSource())).ifPresent(d -> d.drag(e));
 
-  private static final EventHandler<MouseEvent> release = e ->
-      Optional.ofNullable(map.get(e.getSource())).ifPresent(d -> d.release(e));
+  private static final EventHandler<MouseEvent> release = e -> Optional.ofNullable(map.get(e.getSource())).ifPresent(d -> d.release(e));
 }
