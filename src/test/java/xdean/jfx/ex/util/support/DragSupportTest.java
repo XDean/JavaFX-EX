@@ -1,6 +1,8 @@
 package xdean.jfx.ex.util.support;
 
+import static xdean.jfx.ex.util.FxMatchers.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
@@ -28,7 +30,8 @@ public class DragSupportTest extends ApplicationTest {
 
   @Test
   public void test() throws Exception {
+    assertThat(rectangle, atParent(0, 0));
     moveTo(rectangle).press(PRIMARY).moveBy(100, 100).release(PRIMARY);
-
+    assertThat(rectangle, atParent(100, 100));
   }
 }
