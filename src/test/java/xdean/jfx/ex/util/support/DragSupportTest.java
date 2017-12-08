@@ -1,7 +1,7 @@
 package xdean.jfx.ex.util.support;
 
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import static xdean.jfx.ex.test.FxMatchers.atParent;
 
 import org.junit.Test;
@@ -57,6 +57,28 @@ public class DragSupportTest extends ApplicationTest {
     drag(100, 100);
     assertThat(rectangle, atParent(100, 100));
     dragConfig.enableProperty().set(false);
+    moveTo(rectangle);
+    drag(100, 100);
+    assertThat(rectangle, atParent(100, 100));
+  }
+
+  @Test
+  public void testMax() throws Exception {
+    dragConfig.maxXProperty().set(50);
+    dragConfig.maxYProperty().set(50);
+    assertThat(rectangle, atParent(0, 0));
+    moveTo(rectangle);
+    drag(100, 100);
+    assertThat(rectangle, atParent(50, 50));
+  }
+
+  @Test
+  public void testUnbind() throws Exception {
+    assertThat(rectangle, atParent(0, 0));
+    moveTo(rectangle);
+    drag(100, 100);
+    assertThat(rectangle, atParent(100, 100));
+    DragSupport.unbind(rectangle);
     moveTo(rectangle);
     drag(100, 100);
     assertThat(rectangle, atParent(100, 100));
