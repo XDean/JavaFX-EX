@@ -1,5 +1,9 @@
 
 # JavaFX Extension #
+
+[![Build Status](https://travis-ci.org/XDean/JavaFX-EX.svg?branch=master)](https://travis-ci.org/XDean/JavaFX-EX)
+[![codecov.io](http://codecov.io/github/XDean/JavaFX-EX/coverage.svg?branch=master)](https://codecov.io/gh/XDean/JavaFX-EX/branch/master)
+
 ---
 ### Bean ###
 
