@@ -1,8 +1,8 @@
 package xdean.jfx.ex.util.support;
 
-import static xdean.jfx.ex.util.FxMatchers.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
+import static xdean.jfx.ex.test.FxMatchers.atParent;
 
 import org.junit.Test;
 import org.testfx.framework.junit.ApplicationTest;
@@ -20,18 +20,21 @@ public class DragSupportTest extends ApplicationTest {
 
   @Override
   public void start(Stage stage) {
-    Scene scene = new Scene(new Group(rectangle = new Rectangle(100, 100)), 800, 600);
-    rectangle.setLayoutX(100);
-    rectangle.setLayoutY(100);
+    Scene scene = new Scene(new Group(rectangle = new Rectangle(100, 100)), 300, 300);
     stage.setScene(scene);
     stage.show();
     dragConfig = DragSupport.bind(rectangle);
   }
 
   @Test
-  public void test() throws Exception {
+  public void testNormal() throws Exception {
     assertThat(rectangle, atParent(0, 0));
     moveTo(rectangle).press(PRIMARY).moveBy(100, 100).release(PRIMARY);
     assertThat(rectangle, atParent(100, 100));
+  }
+
+  @Test
+  public void testName() throws Exception {
+    dragConfig.borderWidthProperty().set(10.0);
   }
 }

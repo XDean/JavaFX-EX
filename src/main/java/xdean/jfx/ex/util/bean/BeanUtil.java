@@ -1,11 +1,6 @@
 package xdean.jfx.ex.util.bean;
 
-import static xdean.jex.util.task.TaskUtil.firstSuccess;
-import static xdean.jfx.ex.util.bean.BeanConvertUtil.normalize;
-
 import java.util.function.Function;
-
-import com.google.common.annotations.Beta;
 
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.ObjectBinding;
@@ -14,8 +9,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import net.sf.cglib.proxy.Enhancer;
-import net.sf.cglib.proxy.MethodInterceptor;
 import xdean.jex.util.cache.CacheUtil;
 import xdean.jex.util.lang.ExceptionUtil;
 
@@ -136,30 +129,6 @@ public class BeanUtil {
         });
       }
     };
-  }
-
-  @Beta
-  @SuppressWarnings("unchecked")
-  public static <T> T nestWrap(ObservableValue<T> p, Class<T> clz) {
-    Enhancer enhancer = new Enhancer();
-    enhancer.setSuperclass(clz);
-    enhancer.setCallback((MethodInterceptor) (obj, method, args, proxy) -> {
-      if (method.getName().endsWith("Property")) {
-        Object result = firstSuccess(
-            () -> CacheUtil.cache(
-                p,
-                method.toString(),
-                () -> normalize(nestProp(p, t1 -> ExceptionUtil.uncheck(() -> (Property<Object>) method.invoke(t1, args))),
-                    method.getReturnType())),
-            () -> CacheUtil.cache(p, method.toString(),
-                () -> nestValue(p, t2 -> ExceptionUtil.uncheck(() -> (ObservableValue<Object>) method.invoke(t2, args)))));
-        if (result != null) {
-          return result;
-        }
-      }
-      return proxy.invokeSuper(obj, args);
-    });
-    return (T) enhancer.create();
   }
 
   public static interface MapableValue<T> extends ObservableValue<T> {

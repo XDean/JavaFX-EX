@@ -11,10 +11,9 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TextInputControl;
-import lombok.extern.slf4j.Slf4j;
+import xdean.jex.util.log.Logable;
 
-@Slf4j
-public class UndoRedoSupport implements Undoable {
+public class UndoRedoSupport implements Undoable, Logable {
 
   private static WeakHashMap<Object, UndoRedoSupport> map = new WeakHashMap<>();
 
@@ -75,7 +74,7 @@ public class UndoRedoSupport implements Undoable {
 
   @Override
   public Response undo() {
-    log.debug("To undo, size = " + undoList.size() + ", " + this);
+    log().debug("To undo, size = " + undoList.size() + ", " + this);
     handling = true;
     try {
       Undoable u;
@@ -103,7 +102,7 @@ public class UndoRedoSupport implements Undoable {
 
   @Override
   public Response redo() {
-    log.debug("To redo, size = " + redoList.size() + ", " + this);
+    log().debug("To redo, size = " + redoList.size() + ", " + this);
     handling = true;
     try {
       Undoable u;
@@ -131,7 +130,7 @@ public class UndoRedoSupport implements Undoable {
 
   /**
    * An action has been done and add it into uedoList
-   * 
+   *
    * @param u
    *          the action
    * @return whether the action add to undo list
@@ -140,7 +139,7 @@ public class UndoRedoSupport implements Undoable {
     if (addable == false || handling) {
       return false;
     }
-    log.debug("Add new in " + this);
+    log().debug("Add new in " + this);
     push(undoList, u);
     redoList.clear();
     return true;

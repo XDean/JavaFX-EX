@@ -1,4 +1,4 @@
-package xdean.jfx.ex.util;
+package xdean.jfx.ex.test;
 
 import org.hamcrest.Matcher;
 import org.testfx.matcher.base.GeneralMatchers;
@@ -17,6 +17,7 @@ public interface FxMatchers {
   static Matcher<Node> atParent(double x, double y) {
     return GeneralMatchers.typeSafeMatcher(Node.class, "at parent (" + x + ", " + y + ")", n -> {
       Bounds bound = n.getBoundsInParent();
+      System.out.println(bound);
       return bound.getMinX() == x && bound.getMinY() == y;
     });
   }

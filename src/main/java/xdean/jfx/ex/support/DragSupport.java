@@ -1,12 +1,9 @@
 package xdean.jfx.ex.support;
 
-import static xdean.jex.util.function.FunctionAdapter.consumer;
-
 import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.Optional;
 import java.util.WeakHashMap;
-import java.util.function.Consumer;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -20,7 +17,6 @@ import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Window;
 import xdean.jex.util.calc.MathUtil;
-import xdean.jex.util.function.EmptyFunction;
 
 public class DragSupport {
 
@@ -33,11 +29,7 @@ public class DragSupport {
 
     DoubleProperty borderWidthProperty();
 
-    default void doOnDrag(Runnable r) {
-      doOnDrag(consumer(r));
-    }
-
-    void doOnDrag(Consumer<MouseEvent> c);
+    void unbind();
   }
 
   private interface DragHandle extends DragConfig {
@@ -56,7 +48,6 @@ public class DragSupport {
     double startX;
     double startY;
     boolean pressed;
-    Consumer<MouseEvent> doOnDrag = EmptyFunction.consumer();
 
     public BaseDrag(T t) {
       super(t);
@@ -64,11 +55,6 @@ public class DragSupport {
       this.maxY = new SimpleDoubleProperty(Double.MAX_VALUE);
       this.borderWidth = new SimpleDoubleProperty(3);
       this.enable = new SimpleBooleanProperty(true);
-    }
-
-    @Override
-    public void drag(MouseEvent e) {
-      doOnDrag.accept(e);
     }
 
     @Override
@@ -104,11 +90,6 @@ public class DragSupport {
     }
 
     @Override
-    public void doOnDrag(Consumer<MouseEvent> r) {
-      this.doOnDrag = r;
-    }
-
-    @Override
     public DoubleProperty borderWidthProperty() {
       return borderWidth;
     }
@@ -138,12 +119,19 @@ public class DragSupport {
 
     @Override
     public void drag(MouseEvent e) {
-      super.drag(e);
       Node node = get();
       if (pressed && isEnable() && e.isConsumed() == false && node != null) {
         node.setLayoutX(MathUtil.toRange(e.getScreenX() - startX, 0, maxX.get()));
         node.setLayoutY(MathUtil.toRange(e.getScreenY() - startY, 0, maxY.get()));
         e.consume();
+      }
+    }
+
+    @Override
+    public void unbind() {
+      Node node = get();
+      if (node != null) {
+        DragSupport.unbind(node);
       }
     }
   }
@@ -169,12 +157,19 @@ public class DragSupport {
 
     @Override
     public void drag(MouseEvent e) {
-      super.drag(e);
       Window window = get();
       if (pressed && isEnable() && e.isConsumed() == false && window != null) {
         window.setX(MathUtil.toRange(e.getScreenX() - startX, 0, maxX.get()));
         window.setY(MathUtil.toRange(e.getScreenY() - startY, 0, maxY.get()));
         e.consume();
+      }
+    }
+
+    @Override
+    public void unbind() {
+      Window window = get();
+      if (window != null) {
+        DragSupport.unbind(window);
       }
     }
   }

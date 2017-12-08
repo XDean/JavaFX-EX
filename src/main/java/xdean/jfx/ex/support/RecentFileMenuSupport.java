@@ -13,10 +13,9 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.util.Pair;
-import lombok.extern.slf4j.Slf4j;
+import xdean.jex.util.log.Logable;
 
-@Slf4j
-public abstract class RecentFileMenuSupport {
+public abstract class RecentFileMenuSupport implements Logable{
 
   private ObservableList<Pair<File, MenuItem>> recents;
   private Consumer<File> onAction = f -> getClass();
@@ -57,7 +56,7 @@ public abstract class RecentFileMenuSupport {
           .map(this::getRecentMenuItemPair)
           .forEach(recents::add);
     } catch (Exception e) {
-      log.error("Error to load recent location", e);
+      log().error("Error to load recent location", e);
     }
   }
 
