@@ -13,8 +13,10 @@ import javafx.event.EventHandler;
 import javafx.event.EventTarget;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
+import javafx.stage.Screen;
 import javafx.stage.Window;
 import xdean.jex.util.calc.MathUtil;
 
@@ -22,6 +24,10 @@ public class DragSupport {
 
   public interface DragConfig {
     BooleanProperty enableProperty();
+
+    DoubleProperty minXProperty();
+
+    DoubleProperty minYProperty();
 
     DoubleProperty maxXProperty();
 
@@ -41,8 +47,8 @@ public class DragSupport {
   }
 
   private static abstract class BaseDrag<T> extends WeakReference<T> implements DragHandle {
-    final DoubleProperty maxX;
-    final DoubleProperty maxY;
+    final DoubleProperty minX, maxX;
+    final DoubleProperty minY, maxY;
     final DoubleProperty borderWidth;
     final BooleanProperty enable;
     double startX;
@@ -51,6 +57,8 @@ public class DragSupport {
 
     public BaseDrag(T t) {
       super(t);
+      this.minX = new SimpleDoubleProperty(0);
+      this.minY = new SimpleDoubleProperty(0);
       this.maxX = new SimpleDoubleProperty(Double.MAX_VALUE);
       this.maxY = new SimpleDoubleProperty(Double.MAX_VALUE);
       this.borderWidth = new SimpleDoubleProperty(3);
@@ -90,6 +98,16 @@ public class DragSupport {
     }
 
     @Override
+    public DoubleProperty minXProperty() {
+      return minX;
+    }
+
+    @Override
+    public DoubleProperty minYProperty() {
+      return minY;
+    }
+
+    @Override
     public DoubleProperty borderWidthProperty() {
       return borderWidth;
     }
@@ -106,8 +124,6 @@ public class DragSupport {
       Node node = get();
       if (isEnable() && e.isConsumed() == false && node != null) {
         Bounds boundsInLocal = node.getBoundsInLocal();
-        System.out.print(node.screenToLocal(e.getScreenX(), e.getScreenY()));
-        System.out.println("\t" + boundsInLocal);
         if (canDrag(node.screenToLocal(e.getScreenX(), e.getScreenY()), boundsInLocal.getMaxX(), boundsInLocal.getMaxY())) {
           startX = e.getScreenX() - node.getLayoutX();
           startY = e.getScreenY() - node.getLayoutY();
@@ -121,8 +137,8 @@ public class DragSupport {
     public void drag(MouseEvent e) {
       Node node = get();
       if (pressed && isEnable() && e.isConsumed() == false && node != null) {
-        node.setLayoutX(MathUtil.toRange(e.getScreenX() - startX, 0, maxX.get()));
-        node.setLayoutY(MathUtil.toRange(e.getScreenY() - startY, 0, maxY.get()));
+        node.setLayoutX(MathUtil.toRange(e.getScreenX() - startX, minX.get(), maxX.get()));
+        node.setLayoutY(MathUtil.toRange(e.getScreenY() - startY, minY.get(), maxY.get()));
         e.consume();
       }
     }
@@ -140,6 +156,9 @@ public class DragSupport {
 
     public WindowDrag(Window window) {
       super(window);
+      Rectangle2D bound = Screen.getPrimary().getVisualBounds();
+      maxX.set(bound.getMaxX() - window.getWidth());
+      maxY.set(bound.getMaxY() - window.getHeight());
     }
 
     @Override
@@ -159,8 +178,8 @@ public class DragSupport {
     public void drag(MouseEvent e) {
       Window window = get();
       if (pressed && isEnable() && e.isConsumed() == false && window != null) {
-        window.setX(MathUtil.toRange(e.getScreenX() - startX, 0, maxX.get()));
-        window.setY(MathUtil.toRange(e.getScreenY() - startY, 0, maxY.get()));
+        window.setX(MathUtil.toRange(e.getScreenX() - startX, minX.get(), maxX.get()));
+        window.setY(MathUtil.toRange(e.getScreenY() - startY, minY.get(), maxY.get()));
         e.consume();
       }
     }
