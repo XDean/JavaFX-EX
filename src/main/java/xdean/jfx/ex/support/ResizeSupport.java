@@ -20,6 +20,7 @@ import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.shape.Rectangle;
+import xdean.jex.util.calc.MathUtil;
 
 public class ResizeSupport {
 
@@ -32,7 +33,13 @@ public class ResizeSupport {
 
     DoubleProperty minHeightProperty();
 
+    DoubleProperty maxWidthProperty();
+
+    DoubleProperty maxHeightProperty();
+
     ObjectProperty<Cursor> defaultCursorProperty();
+
+    void unbind();
   }
 
   enum Corner {
@@ -63,6 +70,8 @@ public class ResizeSupport {
     DoubleProperty borderWidth = new SimpleDoubleProperty(3);
     DoubleProperty minWidth = new SimpleDoubleProperty(10);
     DoubleProperty minHeight = new SimpleDoubleProperty(10);
+    DoubleProperty maxWidth = new SimpleDoubleProperty(Double.MAX_VALUE);
+    DoubleProperty maxHeight = new SimpleDoubleProperty(Double.MAX_VALUE);
     BooleanProperty enable = new SimpleBooleanProperty(true);
     ObjectProperty<Cursor> defaultCursor = new SimpleObjectProperty<>(Cursor.DEFAULT);
 
@@ -115,26 +124,18 @@ public class ResizeSupport {
       if (isEnable() && pressedCorner != null && e.isConsumed() == false && node != null) {
         double dx = e.getScreenX() - startX;
         if (pressedCorner.horizontal == HorizontalDirection.RIGHT) {
-          if (startWidth + dx > minWidth.get()) {
-            width.set(startWidth + dx);
-          }
+          width.set(MathUtil.toRange(startWidth + dx, minWidth.get(), maxWidth.get()));
         } else if (pressedCorner.horizontal == HorizontalDirection.LEFT) {
-          if (startWidth - dx > minWidth.get()) {
-            width.set(startWidth - dx);
-            node.setLayoutX(startPosX + dx);
-          }
+          width.set(MathUtil.toRange(startWidth - dx, minWidth.get(), maxWidth.get()));
+          node.setLayoutX(startWidth + startPosX - width.get());
         }
 
         double dy = e.getScreenY() - startY;
         if (pressedCorner.vertical == VerticalDirection.DOWN) {
-          if (startHeight + dy > minHeight.get()) {
-            height.set(startHeight + dy);
-          }
+          height.set(MathUtil.toRange(startHeight + dy, minHeight.get(), maxHeight.get()));
         } else if (pressedCorner.vertical == VerticalDirection.UP) {
-          if (startHeight - dy > minHeight.get()) {
-            height.set(startHeight - dy);
-            node.setLayoutY(startPosY + dy);
-          }
+          height.set(MathUtil.toRange(startHeight - dy, minHeight.get(), maxHeight.get()));
+          node.setLayoutY(startHeight + startPosY - height.get());
         }
         e.consume();
       }
@@ -231,6 +232,24 @@ public class ResizeSupport {
     public ObjectProperty<Cursor> defaultCursorProperty() {
       return defaultCursor;
     }
+
+    @Override
+    public DoubleProperty maxWidthProperty() {
+      return maxWidth;
+    }
+
+    @Override
+    public DoubleProperty maxHeightProperty() {
+      return maxHeight;
+    }
+
+    @Override
+    public void unbind() {
+      Node node = get();
+      if (node != null) {
+        ResizeSupport.unbind(node);
+      }
+    }
   }
 
   private static Map<EventTarget, BaseResize> map = new WeakHashMap<>();
@@ -258,7 +277,7 @@ public class ResizeSupport {
     node.removeEventHandler(MouseEvent.MOUSE_PRESSED, press);
     node.removeEventHandler(MouseEvent.MOUSE_DRAGGED, drag);
     node.removeEventHandler(MouseEvent.MOUSE_RELEASED, release);
-    map.remove(node);
+    map.remove(node).setCursor(Corner.CENTER);;
   }
 
   private static final EventHandler<MouseEvent> move = e -> Optional.ofNullable(map.get(e.getSource())).ifPresent(d -> d.move(e));

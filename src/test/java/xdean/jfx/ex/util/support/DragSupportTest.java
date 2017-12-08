@@ -17,7 +17,7 @@ import xdean.jfx.ex.support.DragSupport.DragConfig;
 
 public class DragSupportTest extends ApplicationTest {
   private Rectangle rectangle;
-  private DragConfig dragConfig;
+  private DragConfig config;
 
   @Override
   public void start(Stage stage) {
@@ -25,7 +25,7 @@ public class DragSupportTest extends ApplicationTest {
     stage.setScene(scene);
     stage.setAlwaysOnTop(true);
     stage.show();
-    dragConfig = DragSupport.bind(rectangle);
+    config = DragSupport.bind(rectangle);
   }
 
   @Test
@@ -38,8 +38,7 @@ public class DragSupportTest extends ApplicationTest {
 
   @Test
   public void testBoard() throws Exception {
-    dragConfig.borderWidthProperty().set(10.0);
-
+    config.borderWidthProperty().set(10.0);
     assertThat(rectangle, atParent(0, 0));
     Bounds screen = rectangle.localToScreen(rectangle.getBoundsInLocal());
     moveTo(screen.getMinX(), screen.getMinY());
@@ -56,7 +55,7 @@ public class DragSupportTest extends ApplicationTest {
     moveTo(rectangle);
     drag(100, 100);
     assertThat(rectangle, atParent(100, 100));
-    dragConfig.enableProperty().set(false);
+    config.enableProperty().set(false);
     moveTo(rectangle);
     drag(100, 100);
     assertThat(rectangle, atParent(100, 100));
@@ -64,8 +63,8 @@ public class DragSupportTest extends ApplicationTest {
 
   @Test
   public void testMax() throws Exception {
-    dragConfig.maxXProperty().set(50);
-    dragConfig.maxYProperty().set(50);
+    config.maxXProperty().set(50);
+    config.maxYProperty().set(50);
     assertThat(rectangle, atParent(0, 0));
     moveTo(rectangle);
     drag(100, 100);
@@ -78,7 +77,7 @@ public class DragSupportTest extends ApplicationTest {
     moveTo(rectangle);
     drag(100, 100);
     assertThat(rectangle, atParent(100, 100));
-    dragConfig.unbind();
+    config.unbind();
     moveTo(rectangle);
     drag(100, 100);
     assertThat(rectangle, atParent(100, 100));

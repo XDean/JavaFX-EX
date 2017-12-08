@@ -22,10 +22,22 @@ public interface FxMatchers {
     });
   }
 
+  static Matcher<Node> sizeOf(double x, double y) {
+    return GeneralMatchers.typeSafeMatcher(Node.class, "has size (" + x + ", " + y + ")", n -> {
+      Bounds bound = n.getBoundsInParent();
+      return bound.getWidth() == x && bound.getHeight() == y;
+    });
+  }
+
   interface Windows {
     static Matcher<Window> atScreen(double x, double y) {
       return GeneralMatchers.typeSafeMatcher(Window.class, "at screen (" + x + ", " + y + ")",
           window -> window.getX() == x && window.getY() == y);
+    }
+
+    static Matcher<Window> sizeOf(double x, double y) {
+      return GeneralMatchers.typeSafeMatcher(Window.class, "has size (" + x + ", " + y + ")",
+          window -> window.getWidth() == x && window.getHeight() == y);
     }
   }
 }

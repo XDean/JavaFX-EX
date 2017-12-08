@@ -16,7 +16,7 @@ import xdean.jfx.ex.test.FxMatchers.Windows;
 
 public class DragSupportWindowTest extends ApplicationTest {
   private Stage stage;
-  private DragConfig dragConfig;
+  private DragConfig config;
 
   @Override
   public void start(Stage stage) {
@@ -27,7 +27,7 @@ public class DragSupportWindowTest extends ApplicationTest {
     stage.setX(0);
     stage.setY(0);
     stage.show();
-    dragConfig = DragSupport.bind(stage);
+    config = DragSupport.bind(stage);
   }
 
   @Test
@@ -40,8 +40,7 @@ public class DragSupportWindowTest extends ApplicationTest {
 
   @Test
   public void testBoard() throws Exception {
-    dragConfig.borderWidthProperty().set(10.0);
-
+    config.borderWidthProperty().set(10.0);
     assertThat(stage, Windows.atScreen(0, 0));
     moveTo(stage.getX(), stage.getY());
     drag(100, 100);
@@ -57,7 +56,7 @@ public class DragSupportWindowTest extends ApplicationTest {
     moveTo(stage);
     drag(100, 100);
     assertThat(stage, Windows.atScreen(100, 100));
-    dragConfig.enableProperty().set(false);
+    config.enableProperty().set(false);
     moveTo(stage);
     drag(100, 100);
     assertThat(stage, Windows.atScreen(100, 100));
@@ -65,8 +64,8 @@ public class DragSupportWindowTest extends ApplicationTest {
 
   @Test
   public void testMax() throws Exception {
-    dragConfig.maxXProperty().set(50);
-    dragConfig.maxYProperty().set(50);
+    config.maxXProperty().set(50);
+    config.maxYProperty().set(50);
     assertThat(stage, Windows.atScreen(0, 0));
     moveTo(stage);
     drag(100, 100);
@@ -79,7 +78,7 @@ public class DragSupportWindowTest extends ApplicationTest {
     moveTo(stage);
     drag(100, 100);
     assertThat(stage, Windows.atScreen(100, 100));
-    dragConfig.unbind();
+    config.unbind();
     moveTo(stage);
     drag(100, 100);
     assertThat(stage, Windows.atScreen(100, 100));
