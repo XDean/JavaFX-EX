@@ -78,7 +78,7 @@ public class DragSupportTest extends ApplicationTest {
     moveTo(rectangle);
     drag(100, 100);
     assertThat(rectangle, atParent(100, 100));
-    DragSupport.unbind(rectangle);
+    dragConfig.unbind();
     moveTo(rectangle);
     drag(100, 100);
     assertThat(rectangle, atParent(100, 100));

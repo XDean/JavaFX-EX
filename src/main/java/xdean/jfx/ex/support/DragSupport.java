@@ -76,10 +76,8 @@ public class DragSupport {
 
     protected boolean canDrag(Point2D pressLocal, double maxX, double maxY) {
       double bw = borderWidth.get();
-      return pressLocal.getX() > bw &&
-          pressLocal.getY() > bw &&
-          maxX - pressLocal.getX() > bw &&
-          maxY - pressLocal.getY() > bw;
+      return pressLocal.getX() > bw && pressLocal.getY() > bw &&
+          maxX - pressLocal.getX() > bw && maxY - pressLocal.getY() > bw;
     }
 
     @Override

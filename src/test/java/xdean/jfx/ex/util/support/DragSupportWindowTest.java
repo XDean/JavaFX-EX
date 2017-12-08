@@ -79,7 +79,7 @@ public class DragSupportWindowTest extends ApplicationTest {
     moveTo(stage);
     drag(100, 100);
     assertThat(stage, Windows.atScreen(100, 100));
-    DragSupport.unbind(stage);
+    dragConfig.unbind();
     moveTo(stage);
     drag(100, 100);
     assertThat(stage, Windows.atScreen(100, 100));
