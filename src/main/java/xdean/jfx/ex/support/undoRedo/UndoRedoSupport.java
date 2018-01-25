@@ -74,7 +74,7 @@ public class UndoRedoSupport implements Undoable, Logable {
 
   @Override
   public Response undo() {
-    log().debug("To undo, size = " + undoList.size() + ", " + this);
+    debug().log("To undo, size = " + undoList.size() + ", " + this);
     handling = true;
     try {
       Undoable u;
@@ -102,7 +102,7 @@ public class UndoRedoSupport implements Undoable, Logable {
 
   @Override
   public Response redo() {
-    log().debug("To redo, size = " + redoList.size() + ", " + this);
+    debug().log("To redo, size = " + redoList.size() + ", " + this);
     handling = true;
     try {
       Undoable u;
@@ -139,7 +139,7 @@ public class UndoRedoSupport implements Undoable, Logable {
     if (addable == false || handling) {
       return false;
     }
-    log().debug("Add new in " + this);
+    debug().log("Add new in " + this);
     push(undoList, u);
     redoList.clear();
     return true;

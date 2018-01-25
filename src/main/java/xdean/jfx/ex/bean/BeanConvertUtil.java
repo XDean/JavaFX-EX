@@ -1,4 +1,4 @@
-package xdean.jfx.ex.util.bean;
+package xdean.jfx.ex.bean;
 
 import static xdean.jex.util.task.TaskUtil.andFinal;
 

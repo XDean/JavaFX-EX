@@ -56,7 +56,7 @@ public abstract class RecentFileMenuSupport implements Logable{
           .map(this::getRecentMenuItemPair)
           .forEach(recents::add);
     } catch (Exception e) {
-      log().error("Error to load recent location", e);
+      error().log("Error to load recent location", e);
     }
   }
 

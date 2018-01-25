@@ -1,4 +1,4 @@
-package xdean.jfx.ex.util.bean;
+package xdean.jfx.ex.bean;
 
 import java.lang.ref.WeakReference;
 import java.util.LinkedList;
