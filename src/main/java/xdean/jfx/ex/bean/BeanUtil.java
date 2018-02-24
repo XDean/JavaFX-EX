@@ -1,6 +1,5 @@
 package xdean.jfx.ex.bean;
 
-import static io.reactivex.annotations.SchedulerSupport.COMPUTATION;
 import static xdean.jfx.ex.bean.ListenerUtil.on;
 
 import java.util.Objects;
@@ -9,16 +8,22 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import com.google.common.collect.Lists;
+
 import io.reactivex.Scheduler;
 import io.reactivex.annotations.SchedulerSupport;
 import io.reactivex.schedulers.Schedulers;
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.binding.ListBinding;
+import javafx.beans.binding.MapBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ListProperty;
+import javafx.beans.property.MapProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.value.ObservableBooleanValue;
 import javafx.beans.value.ObservableDoubleValue;
@@ -27,30 +32,38 @@ import javafx.beans.value.ObservableStringValue;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import xdean.jex.util.cache.CacheUtil;
 import xdean.jfx.ex.bean.property.BooleanPropertyEX;
 import xdean.jfx.ex.bean.property.DoublePropertyEX;
 import xdean.jfx.ex.bean.property.IntegerPropertyEX;
 import xdean.jfx.ex.bean.property.ListPropertyEX;
+import xdean.jfx.ex.bean.property.MapPropertyEX;
 import xdean.jfx.ex.bean.property.ObjectPropertyEX;
 import xdean.jfx.ex.bean.property.StringPropertyEX;
 
+/**
+ * Utility class to create bean(observable value) with powerful function.
+ * 
+ * @author XDean
+ *
+ */
 public class BeanUtil {
 
-  private static <F, T, P extends Property<T>, Q extends P> Q nestProp(ObservableValue<F> pf, Function<F, P> func,
+  private static <F, T, P extends Property<T>, Q extends P> Q nestProp(ObservableValue<F> owner, Function<F, P> selector,
       Q newProp) {
-    F value = pf.getValue();
+    F value = owner.getValue();
     if (value != null) {
-      Property<T> current = func.apply(value);
+      Property<T> current = selector.apply(value);
       CacheUtil.set(BeanUtil.class, newProp, current);
       newProp.bindBidirectional(current);
     }
-    pf.addListener((ob, o, n) -> {
+    owner.addListener((ob, o, n) -> {
       CacheUtil.<Property<T>> remove(BeanUtil.class, newProp).ifPresent(p -> newProp.unbindBidirectional(p));
       if (n == null) {
         newProp.setValue(null);
       } else {
-        Property<T> pt = func.apply(n);
+        Property<T> pt = selector.apply(n);
         CacheUtil.set(BeanUtil.class, newProp, pt);
         newProp.bindBidirectional(pt);
       }
@@ -59,11 +72,27 @@ public class BeanUtil {
   }
 
   /**
-   * Select a {@link Property} from a {@link ObservableValue}'s value. Any change of the returned
-   * property will appear to the origin property. Vice versa. e.g.
+   * Select a {@link Property} from a {@link ObservableValue}'s value. Any change of the returned property will appear
+   * to the origin property. Vice versa. e.g.
    * 
+   * <pre>
+   * class Owner {
+   *   Property&#60;T&#62; name = new SimpleStringProperty();
+   * }
+   * Owner a = new Owner();
+   * a.name.setValue("a1");
+   * Owner b = new Owner();
+   * b.name.setValue("b1");
+   * Property&#60;Owner&#62; owner = new SimpleObjectProperty&#60;&#62;(a);
+   * ObjectPropertyEX&#60;String&#62; currentName = nestProp(owner, o -> o.name); // "a1"
+   * a.name.setValue("a2"); // "a2"
+   * b.name.setValue("b2"); // "a2"
+   * owner.setValue(b); // "b2"
+   * a.name.setValue("a3"); // "b2"
+   * b.name.setValue("b3"); // "b3"
+   * </pre>
    * 
-   * @param owner the owner property
+   * @param owner the owner value
    * @param selector function from owner to the target property
    * @return nested property
    */
@@ -72,21 +101,22 @@ public class BeanUtil {
   }
 
   /**
-   * Select an {@link ObservableValue} from a {@link ObservableValue}'s value. Any change of the origin
-   * value will appear to the result value. 
+   * Select an {@link ObservableValue} from a {@link ObservableValue}'s value. Any change of the origin value will
+   * appear to the result value.
    * 
-   * @param owner the owner property
-   * @param selector function from owner to the target property
-   * @return nested property
+   * @param owner the owner value
+   * @param selector function from owner to the target value
+   * @return nested value
+   * @see #nestProp(ObservableValue, Function)
    */
-  public static <F, T> ObjectBinding<T> nestValue(ObservableValue<F> pf, Function<F, ? extends ObservableValue<T>> func) {
+  public static <F, T> ObjectBinding<T> nestValue(ObservableValue<F> owner, Function<F, ? extends ObservableValue<T>> selector) {
     return new ObjectBinding<T>() {
       ObservableValue<T> current;
       {
-        bind(pf);
-        F value = pf.getValue();
+        bind(owner);
+        F value = owner.getValue();
         if (value != null) {
-          this.bind(current = func.apply(value));
+          this.bind(current = selector.apply(value));
         }
       }
 
@@ -96,9 +126,9 @@ public class BeanUtil {
           this.unbind(current);
           current = null;
         }
-        F value = pf.getValue();
+        F value = owner.getValue();
         if (value != null) {
-          current = func.apply(value);
+          current = selector.apply(value);
           this.bind(current);
           return current.getValue();
         } else {
@@ -108,66 +138,115 @@ public class BeanUtil {
     };
   }
 
-  public static <F> BooleanPropertyEX nestBooleanProp(ObservableValue<F> pf, Function<F, Property<Boolean>> func) {
-    return nestProp(pf, func, new BooleanPropertyEX(pf, func.toString()));
+  /**
+   * Select a nested boolean property
+   * 
+   * @see #nestProp(ObservableValue, Function)
+   */
+  public static <F> BooleanPropertyEX nestBooleanProp(ObservableValue<F> owner, Function<F, Property<Boolean>> selector) {
+    return nestProp(owner, selector, new BooleanPropertyEX(owner, selector.toString()));
   }
 
-  public static <F> BooleanBinding nestBooleanValue(ObservableValue<F> pf, Function<F, ObservableBooleanValue> func) {
-    return BeanConvertUtil.toBooleanBinding(nestValue(pf, func));
+  /**
+   * Select a nested boolean value
+   * 
+   * @see #nestValue(ObservableValue, Function)
+   */
+  public static <F> BooleanBinding nestBooleanValue(ObservableValue<F> owner, Function<F, ObservableBooleanValue> selector) {
+    return BeanConvertUtil.toBooleanBinding(nestValue(owner, selector));
   }
 
-  public static <F> IntegerPropertyEX nestIntegerProp(ObservableValue<F> pf, Function<F, Property<Integer>> func) {
-    return nestProp(pf, func, new IntegerPropertyEX(pf, func.toString()));
+  /**
+   * Select a nested int property
+   * 
+   * @see #nestProp(ObservableValue, Function)
+   */
+  public static <F> IntegerPropertyEX nestIntegerProp(ObservableValue<F> owner, Function<F, Property<Integer>> selector) {
+    return nestProp(owner, selector, new IntegerPropertyEX(owner, selector.toString()));
   }
 
-  public static <F> IntegerBinding nestIntegerValue(ObservableValue<F> pf, Function<F, ObservableIntegerValue> func) {
-    return BeanConvertUtil.toIntegerBinding(nestValue(pf, func));
+  /**
+   * Select a nested int value
+   * 
+   * @see #nestValue(ObservableValue, Function)
+   */
+  public static <F> IntegerBinding nestIntegerValue(ObservableValue<F> owner, Function<F, ObservableIntegerValue> selector) {
+    return BeanConvertUtil.toIntegerBinding(nestValue(owner, selector));
   }
 
-  public static <F> DoublePropertyEX nestDoubleProp(ObservableValue<F> pf, Function<F, Property<Double>> func) {
-    return nestProp(pf, func, new DoublePropertyEX(pf, func.toString()));
+  /**
+   * Select a nested double property
+   * 
+   * @see #nestProp(ObservableValue, Function)
+   */
+  public static <F> DoublePropertyEX nestDoubleProp(ObservableValue<F> owner, Function<F, Property<Double>> selector) {
+    return nestProp(owner, selector, new DoublePropertyEX(owner, selector.toString()));
   }
 
-  public static <F> DoubleBinding nestDoubleValue(ObservableValue<F> pf, Function<F, ObservableDoubleValue> func) {
-    return BeanConvertUtil.toDoubleBinding(nestValue(pf, func));
+  /**
+   * Select a nested double value
+   * 
+   * @see #nestValue(ObservableValue, Function)
+   */
+  public static <F> DoubleBinding nestDoubleValue(ObservableValue<F> owner, Function<F, ObservableDoubleValue> selector) {
+    return BeanConvertUtil.toDoubleBinding(nestValue(owner, selector));
   }
 
-  public static <F> StringPropertyEX nestStringProp(ObservableValue<F> pf, Function<F, Property<String>> func) {
-    return nestProp(pf, func, new StringPropertyEX(pf, func.toString()));
+  /**
+   * Select a nested string property
+   * 
+   * @see #nestProp(ObservableValue, Function)
+   */
+  public static <F> StringPropertyEX nestStringProp(ObservableValue<F> owner, Function<F, Property<String>> selector) {
+    return nestProp(owner, selector, new StringPropertyEX(owner, selector.toString()));
   }
 
-  public static <F> StringBinding nestStringValue(ObservableValue<F> pf, Function<F, ObservableStringValue> func) {
-    return BeanConvertUtil.toStringBinding(nestValue(pf, func));
+  /**
+   * Select a nested string value
+   * 
+   * @see #nestValue(ObservableValue, Function)
+   */
+  public static <F> StringBinding nestStringValue(ObservableValue<F> owner, Function<F, ObservableStringValue> selector) {
+    return BeanConvertUtil.toStringBinding(nestValue(owner, selector));
   }
 
-  public static <F, T> ListPropertyEX<T> nestListProp(ObservableValue<F> pf, Function<F, ListProperty<T>> func) {
+  /**
+   * Select a nested list property
+   * 
+   * @see #nestProp(ObservableValue, Function)
+   */
+  public static <F, T> ListPropertyEX<T> nestListProp(ObservableValue<F> owner, Function<F, ListProperty<T>> selector) {
     ListPropertyEX<T> nestProp = new ListPropertyEX<>();
-    F value = pf.getValue();
+    F value = owner.getValue();
     if (value != null) {
-      ListProperty<T> current = func.apply(value);
+      ListProperty<T> current = selector.apply(value);
       CacheUtil.set(BeanUtil.class, nestProp, current);
       nestProp.bindBidirectional(current);
     }
-    pf.addListener((ob, o, n) -> {
-      CacheUtil.<ListProperty<T>> remove(BeanUtil.class, nestProp).ifPresent(
-          p -> nestProp.unbindContentBidirectional(p));
+    owner.addListener((ob, o, n) -> {
+      CacheUtil.<ListProperty<T>> remove(BeanUtil.class, nestProp).ifPresent(p -> nestProp.unbindBidirectional(p));
       if (n != null) {
-        ListProperty<T> pt = func.apply(n);
+        ListProperty<T> pt = selector.apply(n);
         CacheUtil.set(BeanUtil.class, nestProp, pt);
-        nestProp.bindContentBidirectional(pt);
+        nestProp.bindBidirectional(pt);
       }
     });
     return nestProp;
   }
 
-  public static <F, T> ListBinding<T> nestListValue(ObservableValue<F> pf, Function<F, ObservableList<T>> func) {
+  /**
+   * Select a nested list value
+   * 
+   * @see #nestValue(ObservableValue, Function)
+   */
+  public static <F, T> ListBinding<T> nestListValue(ObservableValue<F> owner, Function<F, ObservableList<T>> selector) {
     return new ListBinding<T>() {
       ObservableList<T> current;
       {
-        bind(pf);
-        F value = pf.getValue();
+        bind(owner);
+        F value = owner.getValue();
         if (value != null) {
-          this.bind(current = func.apply(value));
+          this.bind(current = selector.apply(value));
         }
       }
 
@@ -177,9 +256,9 @@ public class BeanUtil {
           this.unbind(current);
           current = null;
         }
-        F value = pf.getValue();
+        F value = owner.getValue();
         if (value != null) {
-          current = func.apply(value);
+          current = selector.apply(value);
           this.bind(current);
           return current;
         } else {
@@ -189,32 +268,80 @@ public class BeanUtil {
     };
   }
 
-  public static <F, T> ObjectBinding<T> map(ObservableValue<F> ov, Function<F, T> func) {
-    return new ObjectBinding<T>() {
+  /**
+   * Select a nested map property
+   * 
+   * @see #nestProp(ObservableValue, Function)
+   */
+  public static <F, K, V> MapPropertyEX<K, V> nestMapProp(ObservableValue<F> owner, Function<F, MapProperty<K, V>> selector) {
+    return nestProp(owner, selector, new MapPropertyEX<>());
+  }
+
+  /**
+   * Select a nested map value
+   * 
+   * @see #nestValue(ObservableValue, Function)
+   */
+  public static <F, K, V> MapBinding<K, V> nestMapValue(ObservableValue<F> owner, Function<F, ObservableMap<K, V>> selector) {
+    return new MapBinding<K, V>() {
+      ObservableMap<K, V> current;
       {
-        bind(ov);
+        bind(owner);
+        F value = owner.getValue();
+        if (value != null) {
+          this.bind(current = selector.apply(value));
+        }
       }
 
       @Override
-      protected T computeValue() {
-        return func.apply(ov.getValue());
-      };
-    };
-  }
-
-  public static <F> BooleanBinding mapToBoolean(ObservableValue<F> ov, Predicate<F> func) {
-    return new BooleanBinding() {
-      {
-        bind(ov);
-      }
-
-      @Override
-      protected boolean computeValue() {
-        return func.test(ov.getValue());
+      protected ObservableMap<K, V> computeValue() {
+        if (current != null) {
+          this.unbind(current);
+          current = null;
+        }
+        F value = owner.getValue();
+        if (value != null) {
+          current = selector.apply(value);
+          this.bind(current);
+          return current;
+        } else {
+          return FXCollections.emptyObservableMap();
+        }
       }
     };
   }
 
+  /**
+   * Convenient method to map value of an {@link ObservableValue}
+   */
+  public static <F, T> ObjectBinding<T> map(ObservableValue<F> ov, Function<F, T> selector) {
+    return Bindings.createObjectBinding(() -> selector.apply(ov.getValue()), ov);
+  }
+
+  /**
+   * Convenient method to map value of an {@link ObservableValue} to boolean
+   */
+  public static <F> BooleanBinding mapToBoolean(ObservableValue<F> ov, Predicate<F> selector) {
+    return Bindings.createBooleanBinding(() -> selector.test(ov.getValue()), ov);
+  }
+
+  /**
+   * Convert {@link ObservableList<F>} to {@link ObservableList<T>} with function.<br>
+   * Note this map is unidirectional.
+   * 
+   * @see BeanConvertUtil#convert(ObservableList, Function, Function)
+   */
+  public static <F, T> ObservableList<T> mapList(ObservableList<F> list, Function<F, T> func) {
+    ObservableList<T> newList = FXCollections.observableArrayList();
+    newList.setAll(Lists.transform(list, func::apply));
+    list.addListener(new MapToTargetListener<>(list, newList, func));
+    return newList;
+  }
+
+  /**
+   * Create a {@link ObjectProperty} has one to one correspondence to the given boolean Property. If the object property
+   * is set to another value, the boolean property will not change.
+   */
   public static <T> ObjectPropertyEX<T> when(Property<Boolean> p, Supplier<T> trueValue, Supplier<T> falseValue) {
     ObjectPropertyEX<T> np = new ObjectPropertyEX<>();
     np.set(p.getValue() ? trueValue.get() : falseValue.get());
@@ -223,15 +350,21 @@ public class BeanUtil {
     return np;
   }
 
+  /**
+   * @see #when(Property, Supplier, Supplier)
+   */
   public static <T> ObjectPropertyEX<T> when(Property<Boolean> p, T trueValue, T falseValue) {
     return when(p, () -> trueValue, () -> falseValue);
   }
 
-  @SchedulerSupport(COMPUTATION)
-  public static <T> void setWhile(Property<T> p, T value, long mills) {
-    BeanUtil.setWhile(p, value, mills, Schedulers.computation());
-  }
-
+  /**
+   * Set the property to the value and restore it after the given time.
+   * 
+   * @param p the property
+   * @param value the value
+   * @param mills time mills
+   * @param scheduler timing thread
+   */
   public static <T> void setWhile(Property<T> p, T value, long mills, Scheduler scheduler) {
     T old = p.getValue();
     p.setValue(value);
@@ -240,5 +373,13 @@ public class BeanUtil {
         p.setValue(old);
       }
     }, mills, TimeUnit.MILLISECONDS);
+  }
+
+  /**
+   * @see #setWhile(Property, Object, long, Scheduler)
+   */
+  @SchedulerSupport(SchedulerSupport.COMPUTATION)
+  public static <T> void setWhile(Property<T> p, T value, long mills) {
+    BeanUtil.setWhile(p, value, mills, Schedulers.computation());
   }
 }
