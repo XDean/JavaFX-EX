@@ -13,7 +13,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.util.Pair;
-import xdean.jex.util.log.Logable;
+import xdean.jex.log.Logable;
 
 public abstract class RecentFileMenuSupport implements Logable{
 

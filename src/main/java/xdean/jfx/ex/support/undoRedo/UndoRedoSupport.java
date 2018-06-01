@@ -11,7 +11,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TextInputControl;
-import xdean.jex.util.log.Logable;
+import xdean.jex.log.Logable;
 
 public class UndoRedoSupport implements Undoable, Logable {
 

@@ -19,10 +19,12 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import xdean.jex.log.Log;
+import xdean.jex.log.LogFactory;
 import xdean.jex.util.cache.CacheUtil;
-import xdean.jex.util.log.LogUtil;
 
 public class BindingUtil {
+  private static final Log LOGGER = LogFactory.from(BindingUtil.class);
   private static final InvalidationListener AUTO_VALID = ob -> ((Binding<?>) ob).getValue();
 
   /**
@@ -69,7 +71,7 @@ public class BindingUtil {
           List<T> list = func.call();
           return list instanceof ObservableList ? (ObservableList<T>) list : FXCollections.observableList(list);
         } catch (Exception e) {
-          LogUtil.warning().log("Exception while evaluating binding", e);
+          LOGGER.warn("Exception while evaluating binding", e);
           return null;
         }
       }
@@ -114,7 +116,7 @@ public class BindingUtil {
           Map<K, V> map = func.call();
           return map instanceof ObservableMap ? (ObservableMap<K, V>) map : FXCollections.observableMap(map);
         } catch (Exception e) {
-          LogUtil.warning().log("Exception while evaluating binding", e);
+          LOGGER.warn("Exception while evaluating binding", e);
           return null;
         }
       }
@@ -158,7 +160,7 @@ public class BindingUtil {
             return FXCollections.concat((ObservableList<T>[]) list.stream().toArray(ObservableList[]::new));
           }
         } catch (Exception e) {
-          LogUtil.warning().log("Exception while evaluating binding", e);
+          LOGGER.warn("Exception while evaluating binding", e);
           return null;
         }
       }
