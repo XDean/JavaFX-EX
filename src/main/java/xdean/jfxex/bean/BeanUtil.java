@@ -25,10 +25,6 @@ import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
-import javafx.beans.value.ObservableBooleanValue;
-import javafx.beans.value.ObservableDoubleValue;
-import javafx.beans.value.ObservableIntegerValue;
-import javafx.beans.value.ObservableStringValue;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -72,8 +68,8 @@ public class BeanUtil {
   }
 
   /**
-   * Select a {@link Property} from a {@link ObservableValue}'s value. Any change of the returned property will appear
-   * to the origin property. Vice versa. e.g.
+   * Select a {@link Property} from a {@link ObservableValue}'s value. Any change of the returned
+   * property will appear to the origin property. Vice versa. e.g.
    * 
    * <pre>
    * class Owner {
@@ -101,17 +97,18 @@ public class BeanUtil {
   }
 
   /**
-   * Select an {@link ObservableValue} from a {@link ObservableValue}'s value. Any change of the origin value will
-   * appear to the result value.
+   * Select an {@link ObservableValue} from a {@link ObservableValue}'s value. Any change of the
+   * origin value will appear to the result value.
    * 
    * @param owner the owner value
    * @param selector function from owner to the target value
    * @return nested value
    * @see #nestProp(ObservableValue, Function)
    */
-  public static <F, T> ObjectBinding<T> nestValue(ObservableValue<F> owner, Function<F, ? extends ObservableValue<T>> selector) {
+  public static <F, T, A extends T> ObjectBinding<T> nestValue(ObservableValue<F> owner,
+      Function<F, ObservableValue<A>> selector) {
     return new ObjectBinding<T>() {
-      ObservableValue<T> current;
+      ObservableValue<A> current;
       {
         bind(owner);
         F value = owner.getValue();
@@ -152,7 +149,7 @@ public class BeanUtil {
    * 
    * @see #nestValue(ObservableValue, Function)
    */
-  public static <F> BooleanBinding nestBooleanValue(ObservableValue<F> owner, Function<F, ObservableBooleanValue> selector) {
+  public static <F> BooleanBinding nestBooleanValue(ObservableValue<F> owner, Function<F, ObservableValue<Boolean>> selector) {
     return BeanConvertUtil.toBooleanBinding(nestValue(owner, selector));
   }
 
@@ -170,7 +167,8 @@ public class BeanUtil {
    * 
    * @see #nestValue(ObservableValue, Function)
    */
-  public static <F> IntegerBinding nestIntegerValue(ObservableValue<F> owner, Function<F, ObservableIntegerValue> selector) {
+  public static <F, A extends Number> IntegerBinding nestIntegerValue(ObservableValue<F> owner,
+      Function<F, ObservableValue<A>> selector) {
     return BeanConvertUtil.toIntegerBinding(nestValue(owner, selector));
   }
 
@@ -188,7 +186,8 @@ public class BeanUtil {
    * 
    * @see #nestValue(ObservableValue, Function)
    */
-  public static <F> DoubleBinding nestDoubleValue(ObservableValue<F> owner, Function<F, ObservableDoubleValue> selector) {
+  public static <F, A extends Number> DoubleBinding nestDoubleValue(ObservableValue<F> owner,
+      Function<F, ObservableValue<A>> selector) {
     return BeanConvertUtil.toDoubleBinding(nestValue(owner, selector));
   }
 
@@ -206,7 +205,7 @@ public class BeanUtil {
    * 
    * @see #nestValue(ObservableValue, Function)
    */
-  public static <F> StringBinding nestStringValue(ObservableValue<F> owner, Function<F, ObservableStringValue> selector) {
+  public static <F> StringBinding nestStringValue(ObservableValue<F> owner, Function<F, ObservableValue<String>> selector) {
     return BeanConvertUtil.toStringBinding(nestValue(owner, selector));
   }
 
@@ -339,8 +338,8 @@ public class BeanUtil {
   }
 
   /**
-   * Create a {@link ObjectProperty} has one to one correspondence to the given boolean Property. If the object property
-   * is set to another value, the boolean property will not change.
+   * Create a {@link ObjectProperty} has one to one correspondence to the given boolean Property. If
+   * the object property is set to another value, the boolean property will not change.
    */
   public static <T> ObjectPropertyEX<T> when(Property<Boolean> p, Supplier<T> trueValue, Supplier<T> falseValue) {
     ObjectPropertyEX<T> np = new ObjectPropertyEX<>();
