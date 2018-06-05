@@ -9,18 +9,33 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.SetChangeListener;
+import xdean.jex.extra.function.Action2;
 import xdean.jex.extra.function.Action3;
 
+/**
+ * Utility class for JavaFX listener
+ * 
+ * @author Dean Xu (XDean@github.com)
+ *
+ */
 public enum ListenerUtil {
   ;
 
+  public static <T, O extends ObservableValue<T>> void addListenerAndInvoke(O ob, ChangeListener<? super T> l) {
+    ob.addListener(l);
+    T value = ob.getValue();
+    l.changed(ob, value, value);
+  }
+
   /**
-   * Create a ChangeListener who hold a WeakReference of the object. If the
-   * object is collected, remove the listener.
+   * Create a ChangeListener who hold a WeakReference of the object. If the object is collected,
+   * remove the listener.
    * 
    * @param obj the object
    * @param listener the actual listener. (obj, old, new) -&gt; {}
@@ -42,26 +57,67 @@ public enum ListenerUtil {
     };
   }
 
-  public static <T> ChangeListenerEX<T> on(T value, Runnable r) {
-    return on(() -> value, r);
-  }
+  /**
+   * Create a InvalidationListener who hold a WeakReference of the object. If the object is
+   * collected, remove the listener.
+   * 
+   * @param obj the object
+   * @param listener the actual listener. (observable, obj) -&gt; {}
+   * @return the listener
+   */
+  public static <O> InvalidationListener weak(O obj, Action2<Observable, O> listener) {
+    return new InvalidationListener() {
+      private final WeakReference<O> weak = new WeakReference<>(obj);
 
-  public static <T> ChangeListenerEX<T> on(Supplier<T> s, Runnable r) {
-    return on(n -> Objects.equals(n, s.get()), n -> r.run());
-  }
-
-  public static <T> ChangeListenerEX<T> on(Predicate<T> p, Consumer<T> r) {
-    return (ob, o, n) -> {
-      if (p.test(n)) {
-        r.accept(n);
+      @Override
+      public void invalidated(Observable ob) {
+        O object = weak.get();
+        if (object == null) {
+          ob.removeListener(this);
+        } else {
+          listener.call(ob, object);
+        }
       }
     };
   }
 
+  /**
+   * Listener to do the action when becomes to the value
+   */
+  public static <T> ChangeListenerEX<T> on(T value, Runnable action) {
+    return on(() -> value, action);
+  }
+
+  /**
+   * Listener to do the action when becomes to the value from the supplier
+   */
+  public static <T> ChangeListenerEX<T> on(Supplier<T> s, Runnable action) {
+    return on(n -> Objects.equals(n, s.get()), n -> action.run());
+  }
+
+  /**
+   * Listener to do the action when the test passed
+   */
+  public static <T> ChangeListenerEX<T> on(Predicate<T> p, Consumer<T> action) {
+    return (ob, o, n) -> {
+      if (p.test(n)) {
+        action.accept(n);
+      }
+    };
+  }
+
+  /**
+   * Create a {@link ListChangeListenerEX} from
+   * {@link com.asml.jex.beans.ListenerUtil.ListChangeListenerEX.Builder}
+   */
   public static <T> ListChangeListenerEX<T> list(UnaryOperator<ListChangeListenerEX.Builder<T>> build) {
     return build.apply(new ListChangeListenerEX.Builder<>()).build();
   }
 
+  /**
+   * Create a {@link SetChangeListenerEX} from
+   * {@link com.asml.jex.beans.ListenerUtil.SetChangeListenerEX.Builder}
+   */
   public static <T> SetChangeListenerEX<T> set(UnaryOperator<SetChangeListenerEX.Builder<T>> build) {
     return build.apply(new SetChangeListenerEX.Builder<>()).build();
   }
@@ -112,6 +168,11 @@ public enum ListenerUtil {
         return this;
       }
 
+      public Builder<T> onChange(Consumer<javafx.collections.ListChangeListener.Change<? extends T>> c) {
+        l.onChange.add(c);
+        return this;
+      }
+
       public ListChangeListenerEX<T> build() {
         return l;
       }
@@ -121,6 +182,7 @@ public enum ListenerUtil {
     private final List<Consumer<T>> onRemoved = new LinkedList<>();
     private final List<Consumer<T>> onUpdated = new LinkedList<>();
     private final List<Action3<T, Integer, Integer>> onPermutated = new LinkedList<>();
+    private final List<Consumer<javafx.collections.ListChangeListener.Change<? extends T>>> onChange = new LinkedList<>();
 
     @Override
     public void onChanged(javafx.collections.ListChangeListener.Change<? extends T> c) {
@@ -145,6 +207,7 @@ public enum ListenerUtil {
             onAdded.forEach(fa -> fa.accept(t));
           }
         }
+        onChange.forEach(t -> t.accept(c));
       }
     }
   }
