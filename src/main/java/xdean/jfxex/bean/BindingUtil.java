@@ -1,12 +1,17 @@
 package xdean.jfxex.bean;
 
+import static xdean.jex.util.cache.CacheUtil.cache;
 import static xdean.jex.util.cache.CacheUtil.set;
+import static xdean.jfxex.bean.ListenerUtil.list;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
+
+import com.google.common.collect.Lists;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -14,6 +19,7 @@ import javafx.beans.binding.Binding;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ListBinding;
 import javafx.beans.binding.MapBinding;
+import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.Property;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -23,7 +29,9 @@ import xdean.jex.log.Log;
 import xdean.jex.log.LogFactory;
 import xdean.jex.util.cache.CacheUtil;
 
-public class BindingUtil {
+public enum BindingUtil {
+  ;
+
   private static final Log LOGGER = LogFactory.from(BindingUtil.class);
   private static final InvalidationListener AUTO_VALID = ob -> ((Binding<?>) ob).getValue();
 
@@ -32,10 +40,10 @@ public class BindingUtil {
    * <p>
    * 
    * @apiNote Sometimes we use Binding as dependency like
-   *          {@code  Binding newBinding = Bindings.createBooleanBinding(()->someBoolean(), dependencyBinding())}. When
-   *          the dependency Binding invalidated first time, the new Binding will be invalidated also. But the
-   *          dependency binding will always be invalid because no one valid(get) it, so this binding will lost latter
-   *          changes. The correct way is
+   *          {@code  Binding newBinding = Bindings.createBooleanBinding(()->someBoolean(), dependencyBinding())}.
+   *          When the dependency Binding invalidated first time, the new Binding will be
+   *          invalidated also. But the dependency binding will always be invalid because no one
+   *          valid(get) it, so this binding will lost latter changes. The correct way is
    *          {@code  Binding newBinding = Bindings.createBooleanBinding(()->someBoolean(), autoValid(dependencyBinding()))}.
    * 
    */
@@ -43,6 +51,13 @@ public class BindingUtil {
     b.removeListener(AUTO_VALID);
     b.addListener(AUTO_VALID);
     return b;
+  }
+
+  /**
+   * Create a {@link ListBinding} from an {@link ObservableValue}
+   */
+  public static <T> ListBinding<T> createListBinding(ObservableValue<T> value) {
+    return createListBinding(() -> FXCollections.singletonObservableList(value.getValue()), value);
   }
 
   /**
@@ -59,7 +74,7 @@ public class BindingUtil {
    * @param dependencies The dependencies of this binding
    * @return The generated binding
    */
-  public static <T> ListBinding<T> createListBinding(Callable<List<T>> func, Observable... dependencies) {
+  public static <T> ListBinding<T> createListBinding(Callable<List<? extends T>> func, Observable... dependencies) {
     return new ListBinding<T>() {
       {
         bind(dependencies);
@@ -68,7 +83,8 @@ public class BindingUtil {
       @Override
       protected ObservableList<T> computeValue() {
         try {
-          List<T> list = func.call();
+          @SuppressWarnings("unchecked")
+          List<T> list = (List<T>) func.call();
           return list instanceof ObservableList ? (ObservableList<T>) list : FXCollections.observableList(list);
         } catch (Exception e) {
           LOGGER.warn("Exception while evaluating binding", e);
@@ -135,15 +151,25 @@ public class BindingUtil {
     };
   }
 
+  public static <K, V> MapBinding<K, V> createMapBinding(ObservableList<K> keys, Function<K, V> keyToValue) {
+    ObservableMap<K, V> map = FXCollections.observableMap(new LinkedHashMap<>());
+    cache(map, "originMap", () -> keys);
+    keys.addListener(list(b -> b
+        .onAdd(k -> map.put(k, keyToValue.apply(k)))
+        .onRemoved(k -> map.remove(k))));
+    return createMapBinding(map);
+  }
+
   /**
-   * Concat a series of {@link ObservableList} as a new {@link ListBinding} and add new dependencies. If the list is
-   * {@link ObservableList}, it will be dependency by default. Or the list will be used as immutable list.
+   * Concat a series of {@link ObservableList} as a new {@link ListBinding} and add new
+   * dependencies. If the list is {@link ObservableList}, it will be dependency by default. Or the
+   * list will be used as immutable list.
    */
-  public static <T> ListBinding<T> concat(List<? extends ObservableList<T>> list, Observable... dependencies) {
+  public static <T> ListBinding<T> concat(List<? extends ObservableList<? extends T>> list, Observable... dependencies) {
     return new ListBinding<T>() {
       {
         if (list instanceof ObservableList) {
-          bind(observeProperty((ObservableList<? extends ObservableList<T>>) list, o -> o));
+          bind(observeProperty((ObservableList<? extends ObservableList<? extends T>>) list, o -> o));
         } else {
           list.forEach(this::bind);
         }
@@ -170,7 +196,7 @@ public class BindingUtil {
   /**
    * @see FXCollections#observableList(List, javafx.util.Callback)
    */
-  public static <T> ObservableList<T> observeProperty(ObservableList<T> list, Function<T, Observable> selector) {
+  public static <T> ObservableList<T> observeProperty(ObservableList<? extends T> list, Function<T, Observable> selector) {
     ObservableList<T> observe = FXCollections.observableArrayList(t -> new Observable[] { selector.apply(t) });
     set(observe, "originList", list);
     Bindings.bindContent(observe, list);
@@ -189,8 +215,8 @@ public class BindingUtil {
   }
 
   /**
-   * Bind a nest property to an observable value. That means whatever the owner property is, its target property is
-   * always bind to the binding value.
+   * Bind a nest property to an observable value. That means whatever the owner property is, its
+   * target property is always bind to the binding value.
    * 
    * @param pf the owner property
    * @param func function from the owner to the target property
@@ -211,5 +237,26 @@ public class BindingUtil {
         pt.bind(bind);
       }
     });
+  }
+
+  public static <T, R> When<T, R> cases(ObservableValue<T> target) {
+    return new When<>(target);
+  }
+
+  public static <T, R> ObjectBinding<R> cases(ObservableValue<T> target, Function<When<T, R>, ObjectBinding<R>> builder) {
+    return builder.apply(new When<>(target));
+  }
+
+  public static <F, T> ObservableList<T> bindContentBidrectly(ObservableList<T> a, ObservableList<F> b, Function<F, T> forward,
+      Function<T, F> backward) {
+    a.setAll(Lists.transform(b, forward::apply));
+
+    MapToTargetListener<F, T> forwardListener = new MapToTargetListener<>(b, a, forward);
+    MapToTargetListener<T, F> backwardListener = new MapToTargetListener<>(a, b, backward);
+    forwardListener.updating.bindBidirectional(backwardListener.updating);
+
+    b.addListener(forwardListener);
+    a.addListener(backwardListener);
+    return a;
   }
 }

@@ -24,7 +24,7 @@ public abstract class RecentFileMenuSupport implements Logable {
 
   private final ObservableList<Path> recentFiles = FXCollections.observableArrayList();
 
-  public RecentFileMenuSupport(Menu menu) {
+  public RecentFileMenuSupport() {
     _load();
     recentFiles.addListener(list(b -> b.onChange(c -> _save())));
   }
@@ -69,7 +69,7 @@ public abstract class RecentFileMenuSupport implements Logable {
     return recentFiles.stream().findFirst();
   }
 
-  public void setLastestFile(Path path) {
+  public void setLatestFile(Path path) {
     recentFiles.removeIf(isEquals(path));
     recentFiles.add(0, path);
   }
