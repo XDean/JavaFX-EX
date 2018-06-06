@@ -1,5 +1,6 @@
 package xdean.jfxex.support;
 
+import static xdean.jex.util.cache.CacheUtil.set;
 import static xdean.jex.util.function.Predicates.isEquals;
 import static xdean.jfxex.bean.BeanUtil.mapList;
 import static xdean.jfxex.bean.ListenerUtil.list;
@@ -40,7 +41,8 @@ public abstract class RecentFileMenuSupport implements Logable {
 
   public void bind(Menu menu, Function<Path, MenuItem> factory) {
     ObservableList<MenuItem> items = mapList(recentFiles, factory);
-    Bindings.bindContentBidirectional(items, menu.getItems());
+    set(menu, "recentList", items);
+    Bindings.bindContentBidirectional(menu.getItems(), items);
   }
 
   public abstract List<String> load();
