@@ -21,15 +21,18 @@ import javafx.beans.binding.ListBinding;
 import javafx.beans.binding.MapBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import xdean.jex.util.cache.CacheUtil;
+import xdean.jfxex.bean.annotation.NotRef;
 import xdean.jfxex.bean.property.BooleanPropertyEX;
 import xdean.jfxex.bean.property.DoublePropertyEX;
 import xdean.jfxex.bean.property.IntegerPropertyEX;
@@ -325,12 +328,19 @@ public class BeanUtil {
   }
 
   /**
+   * Convenient method to map value of an {@link ObservableValue} to String
+   */
+  public static <F> StringBinding mapToString(ObservableValue<F> ov, Function<F, String> selector) {
+    return Bindings.createStringBinding(() -> selector.apply(ov.getValue()), ov);
+  }
+
+  /**
    * Convert {@link ObservableList<F>} to {@link ObservableList<T>} with function.<br>
    * Note this map is unidirectional.
    * 
    * @see BeanConvertUtil#convert(ObservableList, Function, Function)
    */
-  public static <F, T> ObservableList<T> mapList(ObservableList<F> list, Function<F, T> func) {
+  public static <F, T> ObservableList<T> mapList(@NotRef ObservableList<F> list, Function<F, T> func) {
     ObservableList<T> newList = FXCollections.observableArrayList();
     newList.setAll(Lists.transform(list, func::apply));
     list.addListener(new MapToTargetListener<>(list, newList, func));
@@ -380,5 +390,12 @@ public class BeanUtil {
   @SchedulerSupport(SchedulerSupport.COMPUTATION)
   public static <T> void setWhile(Property<T> p, T value, long mills) {
     BeanUtil.setWhile(p, value, mills, Schedulers.computation());
+  }
+
+  public static BooleanProperty reverse(Property<Boolean> p) {
+    BooleanProperty reverse = new SimpleBooleanProperty(p, "reverse", !p.getValue());
+    reverse.addListener((ob, o, n) -> p.setValue(!n));
+    p.addListener((ob, o, n) -> reverse.setValue(!n));
+    return reverse;
   }
 }
