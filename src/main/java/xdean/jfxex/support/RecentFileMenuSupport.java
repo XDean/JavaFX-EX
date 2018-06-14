@@ -13,6 +13,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import io.reactivex.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -26,8 +28,7 @@ public abstract class RecentFileMenuSupport implements Logable {
   private final ObservableList<Path> recentFiles = FXCollections.observableArrayList();
 
   public RecentFileMenuSupport() {
-    _load();
-    recentFiles.addListener(list(b -> b.onChange(c -> _save())));
+    recentFiles.addListener(list(b -> b.onChange(c -> doSave())));
   }
 
   public void bind(Menu menu, Consumer<Path> onAction) {
@@ -49,7 +50,8 @@ public abstract class RecentFileMenuSupport implements Logable {
 
   public abstract void save(List<String> s);
 
-  private void _load() {
+  @PostConstruct
+  protected void doLoad() {
     try {
       Observable.fromIterable(load())
           .map(String::trim)
@@ -61,7 +63,7 @@ public abstract class RecentFileMenuSupport implements Logable {
     }
   }
 
-  private void _save() {
+  protected void doSave() {
     save(recentFiles.stream()
         .map(Path::toString)
         .collect(Collectors.toList()));
