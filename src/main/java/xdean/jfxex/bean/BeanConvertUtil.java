@@ -52,8 +52,8 @@ import xdean.jfxex.bean.property.ObjectPropertyEX;
  * Binding will adapt null value to default value. )</li>
  * <li>Convert {@code Property<T>} to {@code TProperty}. (Note that the result
  * Property DON'T hold the reference of the origin property)</li>
- * <ol>
- * 
+ * </ol>
+ *
  * @author XDean
  *
  */
@@ -65,7 +65,7 @@ public enum BeanConvertUtil {
   public static ObservableBooleanValue toBooleanValue(boolean b) {
     return b ? TRUE : FALSE;
   }
-  
+
   /**
    * Convert {@code ObservableValue<Boolean>} to {@link BooleanBinding}. Default
    * value is false.
@@ -213,8 +213,8 @@ public enum BeanConvertUtil {
   }
 
   /**
-   * Transform {@link ObservableList<F>} to {@link ObservableList<T>} with two functions.
-   * 
+   * Transform {@code ObservableList<F>} to {@code ObservableList<T>} with two functions.
+   *
    * @param list the from list
    * @param forward function from F to T
    * @param backward function from T to F
@@ -223,11 +223,11 @@ public enum BeanConvertUtil {
   public static <F, T> ObservableList<T> convertList(@NotRef ObservableList<F> list, Function<F, T> forward, Function<T, F> backward) {
     ObservableList<T> newList = FXCollections.observableArrayList();
     newList.setAll(Lists.transform(list, forward::apply));
-  
+
     MapToTargetListener<F, T> forwardListener = new MapToTargetListener<>(list, newList, forward);
     MapToTargetListener<T, F> backwardListener = new MapToTargetListener<>(newList, list, backward);
     forwardListener.updating.bindBidirectional(backwardListener.updating);
-  
+
     list.addListener(forwardListener);
     newList.addListener(backwardListener);
     return newList;
@@ -242,7 +242,7 @@ public enum BeanConvertUtil {
     T v = ov.getValue();
     return v == null ? value : v;
   }
-  
+
 
 
   private static ObservableBooleanValue createBooleanValue(boolean b) {

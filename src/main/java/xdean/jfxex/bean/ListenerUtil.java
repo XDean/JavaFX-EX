@@ -20,7 +20,7 @@ import xdean.jex.extra.function.Action3;
 
 /**
  * Utility class for JavaFX listener
- * 
+ *
  * @author Dean Xu (XDean@github.com)
  *
  */
@@ -36,7 +36,7 @@ public enum ListenerUtil {
   /**
    * Create a ChangeListener who hold a WeakReference of the object. If the object is collected,
    * remove the listener.
-   * 
+   *
    * @param obj the object
    * @param listener the actual listener. (obj, old, new) -&gt; {}
    * @return the listener
@@ -60,7 +60,7 @@ public enum ListenerUtil {
   /**
    * Create a InvalidationListener who hold a WeakReference of the object. If the object is
    * collected, remove the listener.
-   * 
+   *
    * @param obj the object
    * @param listener the actual listener. (observable, obj) -&gt; {}
    * @return the listener
@@ -108,7 +108,7 @@ public enum ListenerUtil {
 
   /**
    * Create a {@link ListChangeListenerEX} from
-   * {@link com.asml.jex.beans.ListenerUtil.ListChangeListenerEX.Builder}
+   * {@link ListChangeListenerEX.Builder}
    */
   public static <T> ListChangeListenerEX<T> list(UnaryOperator<ListChangeListenerEX.Builder<T>> build) {
     return build.apply(new ListChangeListenerEX.Builder<>()).build();
@@ -116,7 +116,7 @@ public enum ListenerUtil {
 
   /**
    * Create a {@link SetChangeListenerEX} from
-   * {@link com.asml.jex.beans.ListenerUtil.SetChangeListenerEX.Builder}
+   * {@link SetChangeListenerEX.Builder}
    */
   public static <T> SetChangeListenerEX<T> set(UnaryOperator<SetChangeListenerEX.Builder<T>> build) {
     return build.apply(new SetChangeListenerEX.Builder<>()).build();

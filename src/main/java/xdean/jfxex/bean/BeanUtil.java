@@ -43,7 +43,7 @@ import xdean.jfxex.bean.property.StringPropertyEX;
 
 /**
  * Utility class to create bean(observable value) with powerful function.
- * 
+ *
  * @author XDean
  *
  */
@@ -73,7 +73,7 @@ public class BeanUtil {
   /**
    * Select a {@link Property} from a {@link ObservableValue}'s value. Any change of the returned
    * property will appear to the origin property. Vice versa. e.g.
-   * 
+   *
    * <pre>
    * class Owner {
    *   Property&#60;T&#62; name = new SimpleStringProperty();
@@ -83,14 +83,14 @@ public class BeanUtil {
    * Owner b = new Owner();
    * b.name.setValue("b1");
    * Property&#60;Owner&#62; owner = new SimpleObjectProperty&#60;&#62;(a);
-   * ObjectPropertyEX&#60;String&#62; currentName = nestProp(owner, o -> o.name); // "a1"
+   * ObjectPropertyEX&#60;String&#62; currentName = nestProp(owner, o -&#62; o.name); // "a1"
    * a.name.setValue("a2"); // "a2"
    * b.name.setValue("b2"); // "a2"
    * owner.setValue(b); // "b2"
    * a.name.setValue("a3"); // "b2"
    * b.name.setValue("b3"); // "b3"
    * </pre>
-   * 
+   *
    * @param owner the owner value
    * @param selector function from owner to the target property
    * @return nested property
@@ -102,7 +102,7 @@ public class BeanUtil {
   /**
    * Select an {@link ObservableValue} from a {@link ObservableValue}'s value. Any change of the
    * origin value will appear to the result value.
-   * 
+   *
    * @param owner the owner value
    * @param selector function from owner to the target value
    * @return nested value
@@ -140,7 +140,7 @@ public class BeanUtil {
 
   /**
    * Select a nested boolean property
-   * 
+   *
    * @see #nestProp(ObservableValue, Function)
    */
   public static <F> BooleanPropertyEX nestBooleanProp(ObservableValue<F> owner, Function<F, Property<Boolean>> selector) {
@@ -149,7 +149,7 @@ public class BeanUtil {
 
   /**
    * Select a nested boolean value
-   * 
+   *
    * @see #nestValue(ObservableValue, Function)
    */
   public static <F> BooleanBinding nestBooleanValue(ObservableValue<F> owner, Function<F, ObservableValue<Boolean>> selector) {
@@ -158,7 +158,7 @@ public class BeanUtil {
 
   /**
    * Select a nested int property
-   * 
+   *
    * @see #nestProp(ObservableValue, Function)
    */
   public static <F> IntegerPropertyEX nestIntegerProp(ObservableValue<F> owner, Function<F, Property<Integer>> selector) {
@@ -167,7 +167,7 @@ public class BeanUtil {
 
   /**
    * Select a nested int value
-   * 
+   *
    * @see #nestValue(ObservableValue, Function)
    */
   public static <F, A extends Number> IntegerBinding nestIntegerValue(ObservableValue<F> owner,
@@ -177,7 +177,7 @@ public class BeanUtil {
 
   /**
    * Select a nested double property
-   * 
+   *
    * @see #nestProp(ObservableValue, Function)
    */
   public static <F> DoublePropertyEX nestDoubleProp(ObservableValue<F> owner, Function<F, Property<Double>> selector) {
@@ -186,7 +186,7 @@ public class BeanUtil {
 
   /**
    * Select a nested double value
-   * 
+   *
    * @see #nestValue(ObservableValue, Function)
    */
   public static <F, A extends Number> DoubleBinding nestDoubleValue(ObservableValue<F> owner,
@@ -196,7 +196,7 @@ public class BeanUtil {
 
   /**
    * Select a nested string property
-   * 
+   *
    * @see #nestProp(ObservableValue, Function)
    */
   public static <F> StringPropertyEX nestStringProp(ObservableValue<F> owner, Function<F, Property<String>> selector) {
@@ -205,7 +205,7 @@ public class BeanUtil {
 
   /**
    * Select a nested string value
-   * 
+   *
    * @see #nestValue(ObservableValue, Function)
    */
   public static <F> StringBinding nestStringValue(ObservableValue<F> owner, Function<F, ObservableValue<String>> selector) {
@@ -214,7 +214,7 @@ public class BeanUtil {
 
   /**
    * Select a nested list property
-   * 
+   *
    * @see #nestProp(ObservableValue, Function)
    */
   public static <F, T> ListPropertyEX<T> nestListProp(ObservableValue<F> owner, Function<F, ListProperty<T>> selector) {
@@ -238,7 +238,7 @@ public class BeanUtil {
 
   /**
    * Select a nested list value
-   * 
+   *
    * @see #nestValue(ObservableValue, Function)
    */
   public static <F, T> ListBinding<T> nestListValue(ObservableValue<F> owner, Function<F, ObservableList<T>> selector) {
@@ -272,7 +272,7 @@ public class BeanUtil {
 
   /**
    * Select a nested map property
-   * 
+   *
    * @see #nestProp(ObservableValue, Function)
    */
   public static <F, K, V> MapPropertyEX<K, V> nestMapProp(ObservableValue<F> owner, Function<F, MapProperty<K, V>> selector) {
@@ -281,7 +281,7 @@ public class BeanUtil {
 
   /**
    * Select a nested map value
-   * 
+   *
    * @see #nestValue(ObservableValue, Function)
    */
   public static <F, K, V> MapBinding<K, V> nestMapValue(ObservableValue<F> owner, Function<F, ObservableMap<K, V>> selector) {
@@ -335,10 +335,10 @@ public class BeanUtil {
   }
 
   /**
-   * Convert {@link ObservableList<F>} to {@link ObservableList<T>} with function.<br>
+   * Convert {@code ObservableList<F>} to {@code ObservableList<T>} with function.<br>
    * Note this map is unidirectional.
-   * 
-   * @see BeanConvertUtil#convert(ObservableList, Function, Function)
+   *
+   * @see BeanConvertUtil#convertList(ObservableList, Function, Function)
    */
   public static <F, T> ObservableList<T> mapList(@NotRef ObservableList<F> list, Function<F, T> func) {
     ObservableList<T> newList = FXCollections.observableArrayList();
@@ -368,7 +368,7 @@ public class BeanUtil {
 
   /**
    * Set the property to the value and restore it after the given time.
-   * 
+   *
    * @param p the property
    * @param value the value
    * @param mills time mills
