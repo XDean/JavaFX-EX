@@ -33,9 +33,14 @@ public enum ListenerUtil {
     l.changed(ob, value, value);
   }
 
+  public static <T, O extends Observable> void addListenerAndInvoke(O ob, InvalidationListener l) {
+    ob.addListener(l);
+    l.invalidated(ob);
+  }
+
   /**
-   * Create a ChangeListener who hold a WeakReference of the object. If the object is collected,
-   * remove the listener.
+   * Create a ChangeListener who hold a WeakReference of the object. If the
+   * object is collected, remove the listener.
    *
    * @param obj the object
    * @param listener the actual listener. (obj, old, new) -&gt; {}
@@ -58,8 +63,8 @@ public enum ListenerUtil {
   }
 
   /**
-   * Create a InvalidationListener who hold a WeakReference of the object. If the object is
-   * collected, remove the listener.
+   * Create a InvalidationListener who hold a WeakReference of the object. If
+   * the object is collected, remove the listener.
    *
    * @param obj the object
    * @param listener the actual listener. (observable, obj) -&gt; {}
