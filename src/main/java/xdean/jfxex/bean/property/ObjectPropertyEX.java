@@ -19,6 +19,8 @@ import io.reactivex.Scheduler;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.ObjectBinding;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
@@ -45,13 +47,14 @@ import xdean.jfxex.bean.annotation.NotRef;
  */
 public class ObjectPropertyEX<T> extends SimpleObjectProperty<T> {
   /**
-   * Transform the new value to a newer value. If return the old value, this set will be rejected. Transformers will
-   * handle the value as insert order. <br>
+   * Transform the new value to a newer value. If return the old value, this set will be rejected.
+   * Transformers will handle the value as insert order. <br>
    * NOTE that transformer must never transform a non-null value to null, or NPE occurs.
    */
   private final List<BinaryOperator<T>> transformers = new LinkedList<>();
   /**
-   * Verify the new value. If return false, this set will be rejected. Verifiers will handle the value as insert order.
+   * Verify the new value. If return false, this set will be rejected. Verifiers will handle the
+   * value as insert order.
    */
   private final List<BiPredicate<T, T>> verifiers = new LinkedList<>();
   /**
@@ -59,8 +62,8 @@ public class ObjectPropertyEX<T> extends SimpleObjectProperty<T> {
    */
   private @CheckForNull ObservableList<T> valueList;
   /**
-   * Only work with valueList. If true, the first element will be set when the current value not in the valueList any
-   * more, or will be set to null.
+   * Only work with valueList. If true, the first element will be set when the current value not in
+   * the valueList any more, or will be set to null.
    */
   private boolean selectFirst;
   private final InvalidationListener inListListener = ob -> If.that(valueList.contains(get()))
@@ -116,7 +119,7 @@ public class ObjectPropertyEX<T> extends SimpleObjectProperty<T> {
   }
 
   private boolean verify(T oldValue, T newValue) {
-    if (valueList != null && !valueList.contains(newValue)) {
+    if (valueList != null && newValue != null && !valueList.contains(newValue)) {
       return false;
     }
     return verifiers.stream().allMatch(v -> v.test(oldValue, newValue));
@@ -128,11 +131,6 @@ public class ObjectPropertyEX<T> extends SimpleObjectProperty<T> {
           (getBean() != null && getName() != null ? getBean().getClass().getSimpleName() + "." + getName() + " : " : "")
               + "A bound value cannot be set.");
     }
-  }
-
-  @Override
-  public final void setValue(T t) {
-    super.setValue(t);
   }
 
   /**
@@ -187,8 +185,8 @@ public class ObjectPropertyEX<T> extends SimpleObjectProperty<T> {
   }
 
   /**
-   * When set to null, use default value instead of null. If the property value is null now, set to the defautlValue
-   * immediately.
+   * When set to null, use default value instead of null. If the property value is null now, set to
+   * the defautlValue immediately.
    */
   public ObjectPropertyEX<T> defaultForNull(Supplier<T> defaultValueFactory) {
     if (get() == null) {
@@ -247,8 +245,9 @@ public class ObjectPropertyEX<T> extends SimpleObjectProperty<T> {
   }
 
   /**
-   * Bind the property to the observable value without any limit. The reference of observable value will be holden like
-   * strong bind(bind from {@link Property}). The property value will be set immediately in binding.
+   * Bind the property to the observable value without any limit. The reference of observable value
+   * will be holden like strong bind(bind from {@link Property}). The property value will be set
+   * immediately in binding.
    */
   public <K extends T> void softBind(ObservableValue<K> newObservable) {
     weakBind(newObservable);
@@ -265,8 +264,8 @@ public class ObjectPropertyEX<T> extends SimpleObjectProperty<T> {
   }
 
   /**
-   * Bind the property to the observable value without any limit. The reference of observable value will not be holden.
-   * The property value will not be set in binding.
+   * Bind the property to the observable value without any limit. The reference of observable value
+   * will not be holden. The property value will not be set in binding.
    */
   public <K extends T> void weakBind(@NotRef ObservableValue<K> newObservable) {
     Objects.requireNonNull(newObservable, "Cannot bind to null");
@@ -330,8 +329,8 @@ public class ObjectPropertyEX<T> extends SimpleObjectProperty<T> {
 
   /**
    * Restrict the property's value in the specific list. <br>
-   * When new value comes, all transformer will performed normally, but verifier will not invoked if the new value not
-   * in the value list.<br>
+   * When new value comes, all transformer will performed normally, but verifier will not invoked if
+   * the new value not in the value list.<br>
    * Note this operation will lead this property be nullable.
    * 
    * @param list the value list, null to release the restriction.
@@ -349,5 +348,19 @@ public class ObjectPropertyEX<T> extends SimpleObjectProperty<T> {
       list.addListener(inListListener);
     }
     return this;
+  }
+
+  /**
+   * Convenient instance method link to {@link BeanUtil#map(ObservableValue, Function)}
+   */
+  public <R> ObjectBinding<R> map(Function<T, R> selector) {
+    return BeanUtil.map(this, selector);
+  }
+
+  /**
+   * Convenient instance method link to {@link BeanUtil#mapToString(ObservableValue, Function)}
+   */
+  public StringBinding mapToString(Function<T, String> selector) {
+    return BeanUtil.mapToString(this, selector);
   }
 }
