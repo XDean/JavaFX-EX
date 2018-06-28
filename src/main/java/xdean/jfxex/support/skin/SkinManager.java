@@ -42,9 +42,9 @@ public class SkinManager {
     skinList.add(skin);
   }
 
-  public void bind(Scene scene) {
+  public Scene bind(Scene scene) {
     if (map.containsKey(scene)) {
-      return;
+      return scene;
     }
     ChangeListener<? super SkinStyle> listener = (ob, o, n) -> {
       scene.getStylesheets().remove(o.getURL());
@@ -55,6 +55,7 @@ public class SkinManager {
     }
     skin.addListener(listener);
     map.put(scene, listener);
+    return scene;
   }
 
   public void unbind(Scene scene) {
@@ -64,9 +65,9 @@ public class SkinManager {
     }
   }
 
-  public void bind(Dialog<?> dialog) {
+  public <T> Dialog<T> bind(Dialog<T> dialog) {
     if (map.containsKey(dialog)) {
-      return;
+      return dialog;
     }
     ChangeListener<? super SkinStyle> listener = (ob, o, n) -> {
       dialog.getDialogPane().getStylesheets().remove(o.getURL());
@@ -81,5 +82,6 @@ public class SkinManager {
       skin.removeListener(listener);
       map.remove(dialog);
     });
+    return dialog;
   }
 }
