@@ -1,6 +1,8 @@
 package xdean.jfxex.extra;
 
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import javafx.event.EventHandler;
 import javafx.scene.Node;
@@ -59,6 +61,11 @@ public class FluentDialog<T> {
     return this;
   }
 
+  public FluentDialog<T> button(ButtonType... buttonTypes) {
+    dialog.getDialogPane().getButtonTypes().setAll(buttonTypes);
+    return this;
+  }
+
   public FluentDialog<T> graphic(Node graphic) {
     dialog.setGraphic(graphic);
     return this;
@@ -91,6 +98,15 @@ public class FluentDialog<T> {
     return this;
   }
 
+  public FluentDialog<T> dialogPane(Supplier<DialogPane> value) {
+    dialog.setDialogPane(value.get());
+    return this;
+  }
+
+  public FluentDialog<T> dialogPane() {
+    return this;
+  }
+
   public FluentDialog<T> onShowing(EventHandler<DialogEvent> value) {
     dialog.setOnShowing(value);
     return this;
@@ -113,6 +129,11 @@ public class FluentDialog<T> {
 
   public FluentDialog<T> onCloseRequest(EventHandler<DialogEvent> value) {
     dialog.setOnCloseRequest(value);
+    return this;
+  }
+
+  public FluentDialog<T> dialog(Consumer<Dialog<T>> consumer) {
+    consumer.accept(dialog);
     return this;
   }
 
