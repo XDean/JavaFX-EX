@@ -1,45 +1,29 @@
 package xdean.jfxex.support.skin;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import static xdean.jfxex.bean.ListenerUtil.addListenerAndInvoke;
 
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyObjectWrapper;
+import java.util.Map;
+import java.util.WeakHashMap;
+
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.control.Dialog;
 
 public class SkinManager {
-  private final List<SkinStyle> skinList = new ArrayList<>();
+  private final ObservableList<SkinStyle> skinList = FXCollections.observableArrayList();
+  private final ObjectProperty<SkinStyle> skin = new SimpleObjectProperty<>(this, "skin", SkinStyle.EMPTY);
+  private final Map<Object, ChangeListener<? super SkinStyle>> map = new WeakHashMap<>();
 
-  private ReadOnlyObjectWrapper<SkinStyle> skin = new ReadOnlyObjectWrapper<>();
-
-  private Map<Object, ChangeListener<? super SkinStyle>> map = new HashMap<>();
-
-  public SkinManager() {
+  public ObjectProperty<SkinStyle> skinProperty() {
+    return skin;
   }
 
-  public ReadOnlyObjectProperty<SkinStyle> skinProperty() {
-    return skin.getReadOnlyProperty();
-  }
-
-  public List<SkinStyle> getSkinList() {
-    return Collections.unmodifiableList(skinList);
-  }
-
-  public SkinStyle currentSkin() {
-    return skin.get();
-  }
-
-  public void changeSkin(SkinStyle style) {
-    skin.set(style);
-  }
-
-  public void addSkin(SkinStyle skin) {
-    skinList.add(skin);
+  public ObservableList<SkinStyle> getSkinList() {
+    return skinList;
   }
 
   public Scene bind(Scene scene) {
@@ -50,10 +34,7 @@ public class SkinManager {
       scene.getStylesheets().remove(o.getURL());
       scene.getStylesheets().add(n.getURL());
     };
-    if (skin.get() != null) {
-      scene.getStylesheets().add(skin.get().getURL());
-    }
-    skin.addListener(listener);
+    addListenerAndInvoke(skin, listener);
     map.put(scene, listener);
     return scene;
   }
@@ -73,15 +54,19 @@ public class SkinManager {
       dialog.getDialogPane().getStylesheets().remove(o.getURL());
       dialog.getDialogPane().getStylesheets().add(n.getURL());
     };
-    if (skin.get() != null) {
-      dialog.getDialogPane().getStylesheets().add(skin.get().getURL());
-    }
-    skin.addListener(listener);
+    addListenerAndInvoke(skin, listener);
     map.put(dialog, listener);
     dialog.setOnHidden(e -> {
       skin.removeListener(listener);
       map.remove(dialog);
     });
     return dialog;
+  }
+
+  public void unbind(Dialog<?> dialog) {
+    ChangeListener<? super SkinStyle> remove = map.remove(dialog);
+    if (remove != null) {
+      skin.removeListener(remove);
+    }
   }
 }
