@@ -10,7 +10,9 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import xdean.codecov.CodecovIgnore;
 
+@CodecovIgnore
 class MapToTargetListener<F, T> implements ListChangeListener<F>, WeakListener {
   WeakReference<ObservableList<F>> sourceList;
   WeakReference<ObservableList<T>> targetList;
