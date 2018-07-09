@@ -56,14 +56,14 @@ public enum BindingUtil {
   /**
    * Create a {@link ListBinding} from an {@link ObservableValue}
    */
-  public static <T> ListBinding<T> createListBinding(ObservableValue<T> value) {
+  public static <T> ListBinding<T> createSingletonListBinding(ObservableValue<? extends T> value) {
     return createListBinding(() -> FXCollections.singletonObservableList(value.getValue()), value);
   }
 
   /**
    * Create a {@link ListBinding} from an {@link ObservableList}
    */
-  public static <T> ListBinding<T> createListBinding(ObservableList<T> list) {
+  public static <T> ListBinding<T> createListBinding(ObservableList<? extends T> list) {
     return createListBinding(() -> list, list);
   }
 

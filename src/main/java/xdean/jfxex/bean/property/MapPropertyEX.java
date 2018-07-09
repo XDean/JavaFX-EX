@@ -6,11 +6,21 @@ import java.util.Optional;
 import javax.annotation.CheckForNull;
 
 import javafx.beans.InvalidationListener;
+import javafx.beans.property.MapProperty;
 import javafx.beans.property.SimpleMapProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import xdean.jfxex.bean.annotation.CheckNull;
 
+/**
+ * Extension of {@link MapProperty}
+ * 
+ * @author Dean Xu (XDean@github.com)
+ *
+ * @param <K> type of key
+ * @param <V> type of value
+ */
 public class MapPropertyEX<K, V> extends SimpleMapProperty<K, V> {
   public enum Bijection {
     /**
@@ -35,8 +45,8 @@ public class MapPropertyEX<K, V> extends SimpleMapProperty<K, V> {
   private final InvalidationListener keyInListener = ob -> this.keySet().removeIf(k -> !((ObservableList<K>) ob).contains(k));
   @SuppressWarnings("unchecked")
   private final InvalidationListener valueInListener = ob -> this.values().removeIf(v -> !((ObservableList<V>) ob).contains(v));
-  private @CheckForNull ObservableList<K> keyIn;
-  private @CheckForNull ObservableList<V> valueIn;
+  private @CheckForNull ObservableList<? extends K> keyIn;
+  private @CheckForNull ObservableList<? extends V> valueIn;
   private Bijection bijection = Bijection.NOT;
 
   public MapPropertyEX() {
@@ -74,19 +84,22 @@ public class MapPropertyEX<K, V> extends SimpleMapProperty<K, V> {
     }
     return super.put(k, v);
   }
-  
-  public Optional<V> getSafe(K k){
+
+  /**
+   * Get the value of the key as {@link Optional}
+   */
+  public Optional<V> getSafe(Object k) {
     return Optional.ofNullable(get(k));
   }
 
-  public ObjectPropertyEX<V> propertyAt(K key) {
+  public ObjectPropertyEX<@CheckNull V> propertyAt(K key) {
     ObjectPropertyEX<V> p = new ObjectPropertyEX<>(this, key.toString());
     p.softBind(valueAt(key));
     p.addListener((ob, o, n) -> this.put(key, n));
     return p;
   }
 
-  public MapPropertyEX<K, V> keyIn(@CheckForNull ObservableList<K> keys) {
+  public MapPropertyEX<K, V> keyIn(@CheckForNull ObservableList<? extends K> keys) {
     if (keyIn != null) {
       keyIn.removeListener(keyInListener);
       keyIn = null;
@@ -98,7 +111,7 @@ public class MapPropertyEX<K, V> extends SimpleMapProperty<K, V> {
     return this;
   }
 
-  public MapPropertyEX<K, V> valueIn(@CheckForNull ObservableList<V> values) {
+  public MapPropertyEX<K, V> valueIn(@CheckForNull ObservableList<? extends V> values) {
     if (valueIn != null) {
       valueIn.removeListener(valueInListener);
       valueIn = null;
@@ -118,7 +131,7 @@ public class MapPropertyEX<K, V> extends SimpleMapProperty<K, V> {
     return this;
   }
 
-  private static <K, V> ObservableMap<K, V> defatulMap() {
+  public static <K, V> ObservableMap<K, V> defatulMap() {
     return FXCollections.observableMap(new LinkedHashMap<>());
   }
 }

@@ -45,6 +45,10 @@ class MapToTargetListener<F, T> implements ListChangeListener<F>, WeakListener {
         targetList.remove(change.getFrom(), change.getTo());
         targetList.addAll(change.getFrom(),
             Lists.transform(change.getList().subList(change.getFrom(), change.getTo()), function::apply));
+      } else if (change.wasUpdated()) {
+        for (int i = change.getFrom(); i < change.getTo(); ++i) {
+          targetList.set(i, function.apply(change.getList().get(i)));
+        }
       } else {
         if (change.wasRemoved()) {
           targetList.remove(change.getFrom(), change.getFrom() + change.getRemovedSize());

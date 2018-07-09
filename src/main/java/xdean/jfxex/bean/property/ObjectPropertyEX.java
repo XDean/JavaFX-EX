@@ -346,6 +346,7 @@ public class ObjectPropertyEX<T> extends SimpleObjectProperty<T> {
     if (list != null) {
       valueList = list;
       list.addListener(inListListener);
+      inListListener.invalidated(list);
     }
     return this;
   }

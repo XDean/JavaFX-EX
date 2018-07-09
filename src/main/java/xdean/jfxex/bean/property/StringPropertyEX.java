@@ -1,10 +1,12 @@
 package xdean.jfxex.bean.property;
 
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableStringValue;
+import javafx.beans.value.WritableStringValue;
 import xdean.jex.extra.LazyValue;
 import xdean.jfxex.bean.BeanConvertUtil;
 
-public class StringPropertyEX extends ObjectPropertyEX<String> {
+public class StringPropertyEX extends ObjectPropertyEX<String> implements ObservableStringValue, WritableStringValue {
 
   private LazyValue<StringProperty> normal = LazyValue.create(() -> BeanConvertUtil.toString(this));
 

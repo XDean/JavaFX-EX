@@ -24,6 +24,16 @@ public class IntegerPropertyEX extends ObjectPropertyEX<Integer> {
     super(initialValue);
   }
 
+  public IntegerPropertyEX increase(int i) {
+    set(get() + i);
+    return this;
+  }
+
+  public IntegerPropertyEX decrease(int i) {
+    set(get() - i);
+    return this;
+  }
+
   public IntegerProperty normalize() {
     return normal.get();
   }

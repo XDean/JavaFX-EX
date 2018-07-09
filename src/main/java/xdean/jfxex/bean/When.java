@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -21,14 +22,14 @@ public class When<T, R> {
 
   private final ObservableValue<T> target;
   private final List<Observable> dependencies = new ArrayList<>();
-  private final Map<Predicate<T>, Supplier<? extends R>> conditionResultMap = new LinkedHashMap<>();
+  private final Map<Predicate<? super T>, Function<? super T, ? extends R>> conditionResultMap = new LinkedHashMap<>();
 
   public When(ObservableValue<T> target) {
     this.target = target;
     addDependency(target);
   }
 
-  public Then when(Predicate<T> condition) {
+  public Then when(Predicate<? super T> condition) {
     return new Then(condition);
   }
 
@@ -51,16 +52,19 @@ public class When<T, R> {
     return this;
   }
 
-  public ObjectBinding<R> orElse(Supplier<R> defaultValue) {
+  public ObjectBinding<R> orElse(Function<? super T, ? extends R> defaultValue) {
     conditionResultMap.put(t -> true, defaultValue);
     return new ResultBinding<>(this);
   }
 
+  public ObjectBinding<R> orElse(Supplier<? extends R> defaultValue) {
+    return orElse(v -> defaultValue.get());
+  }
   public ObjectBinding<R> orElse(R defaultValue) {
     return orElse(() -> defaultValue);
   }
 
-  public ObjectBinding<R> orElse(ObservableValue<R> defaultValue) {
+  public ObjectBinding<R> orElse(ObservableValue<? extends R> defaultValue) {
     addDependency(defaultValue);
     return orElse(() -> defaultValue.getValue());
   }
@@ -70,15 +74,18 @@ public class When<T, R> {
   }
 
   public class Then {
-    private final Predicate<T> condition;
+    private final Predicate<? super T> condition;
 
-    public Then(Predicate<T> condition) {
+    public Then(Predicate<? super T> condition) {
       this.condition = condition;
     }
 
-    public When<T, R> then(Supplier<? extends R> value) {
+    public When<T, R> then(Function<? super T, ? extends R> value) {
       conditionResultMap.put(condition, value);
       return When.this;
+    }
+    public When<T, R> then(Supplier<? extends R> value) {
+      return then(v -> value.get());
     }
 
     public When<T, R> then(R value) {
@@ -93,7 +100,7 @@ public class When<T, R> {
 
   private static class ResultBinding<T, R> extends ObjectBinding<R> {
     private final ObservableValue<T> target;
-    private final Map<Predicate<T>, Supplier<? extends R>> conditionResultMap;
+    private final Map<Predicate<? super T>, Function<? super T, ? extends R>> conditionResultMap;
 
     public ResultBinding(When<T, R> when) {
       this.target = when.target;
@@ -107,7 +114,7 @@ public class When<T, R> {
       return conditionResultMap.entrySet().stream()
           .filter(e -> e.getKey().test(value))
           .findFirst()
-          .map(e -> e.getValue().get())
+          .map(e -> e.getValue().apply(value))
           .orElseThrow(() -> new IllegalStateException("Must have default value."));
     }
   }
