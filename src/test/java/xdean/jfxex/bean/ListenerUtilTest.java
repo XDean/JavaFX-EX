@@ -1,8 +1,10 @@
 package xdean.jfxex.bean;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeTrue;
 import static xdean.jfxex.bean.ListenerUtil.weak;
 
+import java.lang.ref.WeakReference;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
@@ -15,6 +17,7 @@ public class ListenerUtilTest extends BaseTest {
   @Test
   public void testWeak() throws Exception {
     Object obj = new Object();
+    WeakReference<Object> weak = new WeakReference<>(obj);
     ip.addListener(weak(obj, (ob, o) -> here()));
     ip.addListener(weak(obj, (ob, o, n) -> here()));
     assertReach(2, () -> ip.set(2));
@@ -23,6 +26,7 @@ public class ListenerUtilTest extends BaseTest {
       System.gc();
       Thread.sleep(10);
     }
+    assumeTrue("Object doesn't collected.", weak.get() == null);
     assertNotReach(() -> ip.set(3));
   }
 
