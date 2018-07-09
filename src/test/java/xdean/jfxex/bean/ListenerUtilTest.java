@@ -19,9 +19,10 @@ public class ListenerUtilTest extends BaseTest {
     ip.addListener(weak(obj, (ob, o, n) -> here()));
     assertReach(2, () -> ip.set(2));
     obj = null;
-    System.gc();
-    Thread.sleep(10);
-    System.gc();
+    for (int i = 0; i < 10; i++) {
+      System.gc();
+      Thread.sleep(10);
+    }
     assertNotReach(() -> ip.set(3));
   }
 
