@@ -26,3 +26,10 @@ comment:
   require_changes: no
   
 ignore:
+#generated
+  - "src/main/java/xdean/jfxex/bean/MapToTargetListener.java"
+  - "src/main/java/xdean/jfxex/support/undoRedo/Undoable.java"
+  - "src/main/java/xdean/jfxex/support/undoRedo/UndoRedoKey.java"
+  - "src/main/java/xdean/jfxex/support/undoRedo/UndoRedoSupport.java"
+  - "src/main/java/xdean/jfxex/support/undoRedo/UndoUtil.java"
+#end
