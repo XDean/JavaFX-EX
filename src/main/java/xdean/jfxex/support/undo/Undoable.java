@@ -1,4 +1,4 @@
-package xdean.jfxex.support.undoRedo;
+package xdean.jfxex.support.undo;
 
 import java.util.function.Function;
 import java.util.function.Supplier;

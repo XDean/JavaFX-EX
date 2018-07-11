@@ -14,14 +14,14 @@ import xdean.codecov.CodecovIgnore;
 
 @CodecovIgnore
 class MapToTargetListener<F, T> implements ListChangeListener<F>, WeakListener {
-  WeakReference<ObservableList<F>> sourceList;
-  WeakReference<ObservableList<T>> targetList;
+  WeakReference<ObservableList<F>> sourceListRef;
+  WeakReference<ObservableList<T>> targetListRef;
   Function<F, T> function;
   BooleanProperty updating = new SimpleBooleanProperty(false);
 
   public MapToTargetListener(ObservableList<F> sourceList, ObservableList<T> targetList, Function<F, T> function) {
-    this.targetList = new WeakReference<>(targetList);
-    this.sourceList = new WeakReference<>(sourceList);
+    this.targetListRef = new WeakReference<>(targetList);
+    this.sourceListRef = new WeakReference<>(sourceList);
     this.function = function;
   }
 
@@ -30,8 +30,8 @@ class MapToTargetListener<F, T> implements ListChangeListener<F>, WeakListener {
     if (updating.get()) {
       return;
     }
-    ObservableList<F> sourceList = this.sourceList.get();
-    ObservableList<T> targetList = this.targetList.get();
+    ObservableList<F> sourceList = this.sourceListRef.get();
+    ObservableList<T> targetList = this.targetListRef.get();
     if (sourceList == null || targetList == null) {
       if (sourceList != null) {
         sourceList.removeListener(this);
@@ -65,6 +65,6 @@ class MapToTargetListener<F, T> implements ListChangeListener<F>, WeakListener {
 
   @Override
   public boolean wasGarbageCollected() {
-    return (sourceList.get() == null) || (targetList.get() == null);
+    return (sourceListRef.get() == null) || (targetListRef.get() == null);
   }
 }

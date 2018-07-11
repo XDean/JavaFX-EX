@@ -1,4 +1,4 @@
-package xdean.jfxex.support.undoRedo;
+package xdean.jfxex.support.undo;
 
 import java.util.List;
 import java.util.function.Function;
@@ -26,25 +26,28 @@ public class UndoRedoKey {
       KeyCombination.SHORTCUT_DOWN);
   private static final KeyCodeCombination DEFAULT_REDO_KEY = new KeyCodeCombination(KeyCode.Y,
       KeyCombination.SHORTCUT_DOWN);
-  public static final Function<KeyEvent, UndoRedo> DEFAULT =
-      e -> {
-        if (DEFAULT_UNDO_KEY.match(e)) {
-          return UndoRedo.UNDO;
-        }
-        if (DEFAULT_REDO_KEY.match(e)) {
-          return UndoRedo.REDO;
-        }
-        return UndoRedo.NOT;
-      };
+  public static final Function<KeyEvent, UndoRedo> DEFAULT = e -> {
+    if (DEFAULT_UNDO_KEY.match(e)) {
+      return UndoRedo.UNDO;
+    }
+    if (DEFAULT_REDO_KEY.match(e)) {
+      return UndoRedo.REDO;
+    }
+    return UndoRedo.NOT;
+  };
 
-  public static final Function<KeyEvent, UndoRedo> TEXT_AREA =
-      e -> convertFromString(matchActionForEvent(TA.BINDINGS, e));
+  public static final Function<KeyEvent, UndoRedo> TEXT_AREA = e -> convertFromString(matchActionForEvent(TA.BINDINGS, e));
 
-  public static final Function<KeyEvent, UndoRedo> TEXT_FIELD =
-      e -> convertFromString(matchActionForEvent(TF.BINDINGS, e));
+  public static final Function<KeyEvent, UndoRedo> TEXT_FIELD = e -> convertFromString(matchActionForEvent(TF.BINDINGS, e));
 
   private static UndoRedo convertFromString(String text) {
-    return text.equals("Undo") ? UndoRedo.UNDO : ("Redo".equals(text) ? UndoRedo.REDO : UndoRedo.NOT);
+    if ("Undo".equals(text)) {
+      return UndoRedo.UNDO;
+    } else if ("Redo".equals(text)) {
+      return UndoRedo.REDO;
+    } else {
+      return UndoRedo.NOT;
+    }
   }
 
   /**
@@ -77,18 +80,17 @@ public class UndoRedoKey {
   }
 
   private static class TA extends TextAreaBehavior {
-    public static final List<KeyBinding> BINDINGS = TEXT_AREA_BINDINGS;
+    private static final List<KeyBinding> BINDINGS = TEXT_AREA_BINDINGS;
 
-    public TA(TextArea textArea) {
+    private TA(TextArea textArea) {
       super(textArea);
-
     }
   }
 
   private static class TF extends TextFieldBehavior {
-    public static final List<KeyBinding> BINDINGS = TEXT_INPUT_BINDINGS;
+    private static final List<KeyBinding> BINDINGS = TEXT_INPUT_BINDINGS;
 
-    public TF(TextField textField) {
+    private TF(TextField textField) {
       super(textField);
     }
   }

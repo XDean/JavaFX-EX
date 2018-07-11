@@ -12,7 +12,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Paint;
 
-public class LayoutUtil {
+public enum LayoutUtil {
+  ;
 
   public static <T extends Node> T margin(T t, Insets inset) {
     HBox.setMargin(t, inset);

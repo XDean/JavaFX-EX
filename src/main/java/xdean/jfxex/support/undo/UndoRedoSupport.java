@@ -1,4 +1,4 @@
-package xdean.jfxex.support.undoRedo;
+package xdean.jfxex.support.undo;
 
 import java.util.EmptyStackException;
 import java.util.List;
@@ -18,12 +18,7 @@ public class UndoRedoSupport implements Undoable, Logable {
   private static WeakHashMap<Object, UndoRedoSupport> map = new WeakHashMap<>();
 
   public static UndoRedoSupport get(Object key) {
-    UndoRedoSupport urs = map.get(key);
-    if (urs == null) {
-      urs = new UndoRedoSupport();
-      map.put(key, urs);
-    }
-    return urs;
+    return map.computeIfAbsent(key, k -> new UndoRedoSupport());
   }
 
   public static void set(Object key, UndoRedoSupport urs) {
@@ -131,12 +126,11 @@ public class UndoRedoSupport implements Undoable, Logable {
   /**
    * An action has been done and add it into uedoList
    *
-   * @param u
-   *          the action
+   * @param u the action
    * @return whether the action add to undo list
    */
   public boolean add(Undoable u) {
-    if (addable == false || handling) {
+    if (!addable || handling) {
       return false;
     }
     debug().log("Add new in " + this);
@@ -178,8 +172,8 @@ public class UndoRedoSupport implements Undoable, Logable {
 
   /************************** bind *************************/
   public void bind(CheckBox box) {
-    box.selectedProperty().addListener((ob, o, n) ->
-        add(Undoable.create(UndoUtil.weakConsumer(box, CheckBox::setSelected), n, o)));
+    box.selectedProperty()
+        .addListener((ob, o, n) -> add(Undoable.create(UndoUtil.weakConsumer(box, CheckBox::setSelected), n, o)));
   }
 
   public <T> void bind(ComboBox<T> box) {
@@ -190,7 +184,7 @@ public class UndoRedoSupport implements Undoable, Logable {
             n, o)));
   }
 
-  public <T> void bind(TextInputControl text) {
+  public void bind(TextInputControl text) {
     class TextUndoRedoSupport {
       TextInputControl textControl;
       String oldText;
@@ -202,7 +196,7 @@ public class UndoRedoSupport implements Undoable, Logable {
       }
 
       private void textChanged(Observable ob, String o, String n) {
-        if (textControl.isFocused() == false) {
+        if (!textControl.isFocused()) {
           addAction(o, n);
         }
       }
@@ -213,7 +207,7 @@ public class UndoRedoSupport implements Undoable, Logable {
         } else {
           if (oldText != null) {
             String newText = textControl.getText();
-            if (newText.equals(oldText) == false) {
+            if (!newText.equals(oldText)) {
               addAction(oldText, newText);
             }
           }

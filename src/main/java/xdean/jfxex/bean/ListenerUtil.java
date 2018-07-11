@@ -33,14 +33,14 @@ public enum ListenerUtil {
     l.changed(ob, value, value);
   }
 
-  public static <T, O extends Observable> void addListenerAndInvoke(O ob, InvalidationListener l) {
+  public static <O extends Observable> void addListenerAndInvoke(O ob, InvalidationListener l) {
     ob.addListener(l);
     l.invalidated(ob);
   }
 
   /**
-   * Create a ChangeListener who hold a WeakReference of the object. If the
-   * object is collected, remove the listener.
+   * Create a ChangeListener who hold a WeakReference of the object. If the object is collected,
+   * remove the listener.
    *
    * @param obj the object
    * @param listener the actual listener. (obj, old, new) -&gt; {}
@@ -63,8 +63,8 @@ public enum ListenerUtil {
   }
 
   /**
-   * Create a InvalidationListener who hold a WeakReference of the object. If
-   * the object is collected, remove the listener.
+   * Create a InvalidationListener who hold a WeakReference of the object. If the object is
+   * collected, remove the listener.
    *
    * @param obj the object
    * @param listener the actual listener. (observable, obj) -&gt; {}
@@ -112,16 +112,14 @@ public enum ListenerUtil {
   }
 
   /**
-   * Create a {@link ListChangeListenerEX} from
-   * {@link ListChangeListenerEX.Builder}
+   * Create a {@link ListChangeListenerEX} from {@link ListChangeListenerEX.Builder}
    */
   public static <T> ListChangeListenerEX<T> list(UnaryOperator<ListChangeListenerEX.Builder<T>> build) {
     return build.apply(new ListChangeListenerEX.Builder<>()).build();
   }
 
   /**
-   * Create a {@link SetChangeListenerEX} from
-   * {@link SetChangeListenerEX.Builder}
+   * Create a {@link SetChangeListenerEX} from {@link SetChangeListenerEX.Builder}
    */
   public static <T> SetChangeListenerEX<T> set(UnaryOperator<SetChangeListenerEX.Builder<T>> build) {
     return build.apply(new SetChangeListenerEX.Builder<>()).build();

@@ -66,7 +66,7 @@ public class When<T, R> {
 
   public ObjectBinding<R> orElse(ObservableValue<? extends R> defaultValue) {
     addDependency(defaultValue);
-    return orElse(() -> defaultValue.getValue());
+    return orElse(defaultValue::getValue);
   }
 
   public ObjectBinding<R> orElse() {
@@ -94,7 +94,7 @@ public class When<T, R> {
 
     public When<T, R> then(ObservableValue<? extends R> value) {
       addDependency(value);
-      return then(() -> value.getValue());
+      return then(value::getValue);
     }
   }
 

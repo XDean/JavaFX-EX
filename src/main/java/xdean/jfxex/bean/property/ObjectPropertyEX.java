@@ -71,7 +71,7 @@ public class ObjectPropertyEX<T> extends SimpleObjectProperty<T> {
   /**
    * Hold the references of soft bindings.
    */
-  private final LazyValue<List<ObservableValue<? extends T>>> softBindings = LazyValue.create(() -> new LinkedList<>());
+  private final LazyValue<List<ObservableValue<? extends T>>> softBindings = LazyValue.create(LinkedList::new);
   private final ChangeListenerEX<T> bindListener = weak(this, (t, o, n) -> t.set(n));
 
   public ObjectPropertyEX() {
@@ -127,7 +127,7 @@ public class ObjectPropertyEX<T> extends SimpleObjectProperty<T> {
 
   protected void checkBound() {
     if (isBound()) {
-      throw new java.lang.RuntimeException(
+      throw new IllegalStateException(
           (getBean() != null && getName() != null ? getBean().getClass().getSimpleName() + "." + getName() + " : " : "")
               + "A bound value cannot be set.");
     }

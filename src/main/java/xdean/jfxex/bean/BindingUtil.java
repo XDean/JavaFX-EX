@@ -87,7 +87,7 @@ public enum BindingUtil {
           List<T> list = (List<T>) func.call();
           return list instanceof ObservableList ? (ObservableList<T>) list : FXCollections.observableList(list);
         } catch (Exception e) {
-          LOGGER.warn("Exception while evaluating binding", e);
+          evaluateError(e);
           return null;
         }
       }
@@ -99,9 +99,7 @@ public enum BindingUtil {
 
       @Override
       public ObservableList<?> getDependencies() {
-        return ((dependencies == null) || (dependencies.length == 0)) ? FXCollections.emptyObservableList()
-            : (dependencies.length == 1) ? FXCollections.singletonObservableList(dependencies[0])
-                : FXCollections.unmodifiableObservableList(FXCollections.observableArrayList(dependencies));
+        return arrayToObservableList(dependencies);
       }
     };
   }
@@ -132,7 +130,7 @@ public enum BindingUtil {
           Map<K, V> map = func.call();
           return map instanceof ObservableMap ? (ObservableMap<K, V>) map : FXCollections.observableMap(map);
         } catch (Exception e) {
-          LOGGER.warn("Exception while evaluating binding", e);
+          evaluateError(e);
           return null;
         }
       }
@@ -144,9 +142,7 @@ public enum BindingUtil {
 
       @Override
       public ObservableList<?> getDependencies() {
-        return ((dependencies == null) || (dependencies.length == 0)) ? FXCollections.emptyObservableList()
-            : (dependencies.length == 1) ? FXCollections.singletonObservableList(dependencies[0])
-                : FXCollections.unmodifiableObservableList(FXCollections.observableArrayList(dependencies));
+        return arrayToObservableList(dependencies);
       }
     };
   }
@@ -156,7 +152,7 @@ public enum BindingUtil {
     cache(map, "originMap", () -> keys);
     keys.addListener(list(b -> b
         .onAdd(k -> map.put(k, keyToValue.apply(k)))
-        .onRemoved(k -> map.remove(k))));
+        .onRemoved(map::remove)));
     return createMapBinding(map);
   }
 
@@ -186,7 +182,7 @@ public enum BindingUtil {
             return FXCollections.concat((ObservableList<T>[]) list.stream().toArray(ObservableList[]::new));
           }
         } catch (Exception e) {
-          LOGGER.warn("Exception while evaluating binding", e);
+          evaluateError(e);
           return null;
         }
       }
@@ -230,7 +226,7 @@ public enum BindingUtil {
       current.bind(bind);
     }
     pf.addListener((ob, o, n) -> {
-      CacheUtil.<Property<T>> get(BindingUtil.class, bind).ifPresent(p -> p.unbind());
+      CacheUtil.<Property<T>> get(BindingUtil.class, bind).ifPresent(Property::unbind);
       if (n != null) {
         Property<T> pt = func.apply(n);
         CacheUtil.set(BindingUtil.class, bind, pt);
@@ -258,5 +254,19 @@ public enum BindingUtil {
     b.addListener(forwardListener);
     a.addListener(backwardListener);
     return a;
+  }
+
+  private static void evaluateError(Exception e) {
+    LOGGER.warn("Exception while evaluating binding", e);
+  }
+
+  private static ObservableList<?> arrayToObservableList(Observable... dependencies) {
+    if (dependencies == null || dependencies.length == 0) {
+      return FXCollections.emptyObservableList();
+    } else if (dependencies.length == 1) {
+      return FXCollections.singletonObservableList(dependencies[0]);
+    } else {
+      return FXCollections.unmodifiableObservableList(FXCollections.observableArrayList(dependencies));
+    }
   }
 }

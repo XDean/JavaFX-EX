@@ -45,7 +45,8 @@ import xdean.jfxex.bean.property.StringPropertyEX;
  * @author XDean
  *
  */
-public class BeanUtil {
+public enum BeanUtil {
+  ;
 
   private static <F, T, P extends Property<T>, Q extends P> Q nestProp(ObservableValue<F> owner, Function<F, P> selector,
       Q newProp) {
@@ -56,7 +57,7 @@ public class BeanUtil {
       newProp.bindBidirectional(current);
     }
     owner.addListener((ob, o, n) -> {
-      CacheUtil.<Property<T>> remove(BeanUtil.class, newProp).ifPresent(p -> newProp.unbindBidirectional(p));
+      CacheUtil.<Property<T>> remove(BeanUtil.class, newProp).ifPresent(newProp::unbindBidirectional);
       if (n == null) {
         newProp.setValue(null);
       } else {
@@ -114,7 +115,8 @@ public class BeanUtil {
         bind(owner);
         F value = owner.getValue();
         if (value != null) {
-          this.bind(current = selector.apply(value));
+          current = selector.apply(value);
+          this.bind(current);
         }
       }
 
@@ -225,7 +227,7 @@ public class BeanUtil {
       nestProp.bindBidirectional(current);
     }
     owner.addListener((ob, o, n) -> {
-      CacheUtil.<Property<ObservableList<T>>> remove(BeanUtil.class, nestProp).ifPresent(p -> nestProp.unbindBidirectional(p));
+      CacheUtil.<Property<ObservableList<T>>> remove(BeanUtil.class, nestProp).ifPresent(nestProp::unbindBidirectional);
       if (n == null) {
         nestProp.set(FXCollections.emptyObservableList());
       } else {
@@ -249,7 +251,8 @@ public class BeanUtil {
         bind(owner);
         F value = owner.getValue();
         if (value != null) {
-          this.bind(current = selector.apply(value));
+          current = selector.apply(value);
+          this.bind(current);
         }
       }
 
@@ -294,7 +297,8 @@ public class BeanUtil {
         bind(owner);
         F value = owner.getValue();
         if (value != null) {
-          this.bind(current = selector.apply(value));
+          current = selector.apply(value);
+          this.bind(current);
         }
       }
 

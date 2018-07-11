@@ -5,18 +5,19 @@ import static xdean.jex.util.cache.CacheUtil.set;
 import java.util.function.Function;
 
 import com.google.common.collect.Lists;
-import com.sun.javafx.binding.BidirectionalContentBinding;
 
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-public class CollectionUtil {
+public enum CollectionUtil {
+  ;
 
   public static <F, T> void bind(ObservableList<F> list1, ObservableList<T> list2, Function<F, T> forward,
       Function<T, F> backward) {
     ObservableList<T> newList1 = CollectionUtil.map(list1, forward, backward);
     set(BeanUtil.class, list1, newList1);
-    BidirectionalContentBinding.bind(newList1, list2);
+    Bindings.bindContentBidirectional(newList1, list2);
   }
 
   public static <F, T> ObservableList<T> map(ObservableList<F> list, Function<F, T> forward, Function<T, F> backward) {
