@@ -30,6 +30,11 @@ public class DragSupportWindowTest extends ApplicationTest {
     config = DragSupport.bind(stage);
   }
 
+  @Override
+  public void stop() throws Exception {
+    DragSupport.unbind(stage);
+  }
+
   @Test
   public void testNormal() throws Exception {
     assertThat(stage, Windows.atScreen(0, 0));
