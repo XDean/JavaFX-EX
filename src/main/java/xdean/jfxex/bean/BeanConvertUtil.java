@@ -48,10 +48,10 @@ import xdean.jfxex.bean.property.ObjectPropertyEX;
 /**
  * Utility class to
  * <ol>
- * <li>Convert {@link ObservableValue} to {@link Binding}. (Note the result
- * Binding will adapt null value to default value. )</li>
- * <li>Convert {@code Property<T>} to {@code TProperty}. (Note that the result
- * Property DON'T hold the reference of the origin property)</li>
+ * <li>Convert {@link ObservableValue} to {@link Binding}. (Note the result Binding will adapt null
+ * value to default value. )</li>
+ * <li>Convert {@code Property<T>} to {@code TProperty}. (Note that the result Property DON'T hold
+ * the reference of the origin property)</li>
  * </ol>
  *
  * @author XDean
@@ -60,15 +60,15 @@ import xdean.jfxex.bean.property.ObjectPropertyEX;
 public enum BeanConvertUtil {
   ;
 
-  public static final ObservableBooleanValue TRUE = createBooleanValue(true), FALSE = createBooleanValue(false);
+  public static final ObservableBooleanValue TRUE = createBooleanValue(true);
+  public static final ObservableBooleanValue FALSE = createBooleanValue(false);
 
   public static ObservableBooleanValue toBooleanValue(boolean b) {
     return b ? TRUE : FALSE;
   }
 
   /**
-   * Convert {@code ObservableValue<Boolean>} to {@link BooleanBinding}. Default
-   * value is false.
+   * Convert {@code ObservableValue<Boolean>} to {@link BooleanBinding}. Default value is false.
    */
   public static BooleanBinding toBooleanBinding(final ObservableValue<Boolean> ov) {
     return Bindings.createBooleanBinding(() -> get(ov, false), ov);
@@ -82,8 +82,7 @@ public enum BeanConvertUtil {
   }
 
   /**
-   * Convert {@code Property<? extends Number>} to {@link IntegerBinding}.
-   * Default value is 0.
+   * Convert {@code Property<? extends Number>} to {@link IntegerBinding}. Default value is 0.
    */
   public static IntegerBinding toIntegerBinding(ObservableValue<? extends Number> ov) {
     return Bindings.createIntegerBinding(() -> get(ov, 0).intValue(), ov);
@@ -97,8 +96,8 @@ public enum BeanConvertUtil {
   }
 
   /**
-   * Convert {@code ObservableValue<? extends Number>} to {@link DoubleBinding}.
-   * Default value is 0d.
+   * Convert {@code ObservableValue<? extends Number>} to {@link DoubleBinding}. Default value is
+   * 0d.
    */
   public static DoubleBinding toDoubleBinding(ObservableValue<? extends Number> ov) {
     return Bindings.createDoubleBinding(() -> get(ov, 0d).doubleValue(), ov);
@@ -112,8 +111,7 @@ public enum BeanConvertUtil {
   }
 
   /**
-   * Convert {@code ObservableValue<? extends Number>} to {@link LongBinding}.
-   * Default value is 0L
+   * Convert {@code ObservableValue<? extends Number>} to {@link LongBinding}. Default value is 0L
    */
   public static LongBinding toLongBinding(ObservableValue<? extends Number> ov) {
     return Bindings.createLongBinding(() -> get(ov, 0L).longValue(), ov);
@@ -127,8 +125,7 @@ public enum BeanConvertUtil {
   }
 
   /**
-   * Convert {@code ObservableValue<? extends Number>} to {@link FloatBinding}.
-   * Default value is 0f
+   * Convert {@code ObservableValue<? extends Number>} to {@link FloatBinding}. Default value is 0f
    */
   public static FloatBinding toFloatBinding(ObservableValue<? extends Number> ov) {
     return Bindings.createFloatBinding(() -> get(ov, 0f).floatValue(), ov);
@@ -142,8 +139,7 @@ public enum BeanConvertUtil {
   }
 
   /**
-   * Convert {@code ObservableValue<String>} to {@link StringBinding}. Default
-   * value is "".
+   * Convert {@code ObservableValue<String>} to {@link StringBinding}. Default value is "".
    */
   public static StringBinding toStringBinding(ObservableValue<String> ov) {
     return Bindings.createStringBinding(() -> get(ov, ""), ov);
@@ -171,8 +167,8 @@ public enum BeanConvertUtil {
   }
 
   /**
-   * Convert {@code ObservableValue<List<T>>} to {@code ListBinding<T>}. Default
-   * value is unmodifiable empty list.
+   * Convert {@code ObservableValue<List<T>>} to {@code ListBinding<T>}. Default value is
+   * unmodifiable empty list.
    */
   public static <T> ListBinding<T> toListBinding(ObservableValue<List<T>> ov) {
     return createListBinding(() -> {
@@ -220,7 +216,8 @@ public enum BeanConvertUtil {
    * @param backward function from T to F
    * @return
    */
-  public static <F, T> ObservableList<T> convertList(@NotRef ObservableList<F> list, Function<F, T> forward, Function<T, F> backward) {
+  public static <F, T> ObservableList<T> convertList(@NotRef ObservableList<F> list, Function<F, T> forward,
+      Function<T, F> backward) {
     ObservableList<T> newList = FXCollections.observableArrayList();
     newList.setAll(Lists.transform(list, forward::apply));
 
@@ -243,24 +240,26 @@ public enum BeanConvertUtil {
     return v == null ? value : v;
   }
 
-
-
   private static ObservableBooleanValue createBooleanValue(boolean b) {
     return new ObservableBooleanValue() {
       @Override
-      public void addListener(ChangeListener<? super Boolean> arg0) {
+      public void addListener(ChangeListener<? super Boolean> l) {
+        // ignore
       }
 
       @Override
-      public void removeListener(InvalidationListener arg0) {
+      public void removeListener(InvalidationListener l) {
+        // ignore
       }
 
       @Override
-      public void addListener(InvalidationListener arg0) {
+      public void addListener(InvalidationListener l) {
+        // ignore
       }
 
       @Override
-      public void removeListener(ChangeListener<? super Boolean> arg0) {
+      public void removeListener(ChangeListener<? super Boolean> l) {
+        // ignore
       }
 
       @Override

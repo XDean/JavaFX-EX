@@ -4,7 +4,8 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 
-public class DebugUtil {
+public enum DebugUtil {
+  ;
 
   public static void traceBean(ObservableValue<?> ov) {
     ov.addListener((ob, o, n) -> System.out
@@ -19,9 +20,7 @@ public class DebugUtil {
     sb.append(String.format("id:%s  %s", n.getId(), n));
     System.out.println(sb.toString());
     if (n instanceof Parent) {
-      ((Parent) n).getChildrenUnmodifiable().forEach(node -> {
-        printAllWithId(node, space + 1);
-      });
+      ((Parent) n).getChildrenUnmodifiable().forEach(node -> printAllWithId(node, space + 1));
     }
   }
 }

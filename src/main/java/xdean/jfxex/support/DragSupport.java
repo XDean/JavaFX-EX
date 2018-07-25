@@ -19,8 +19,8 @@ import javafx.stage.Screen;
 import javafx.stage.Window;
 import xdean.jex.util.calc.MathUtil;
 
-public class DragSupport {
-
+public enum DragSupport {
+  ;
   public interface DragConfig {
     BooleanProperty enableProperty();
 
@@ -59,23 +59,19 @@ public class DragSupport {
     }
   }
 
-  private static abstract class BaseDrag<T> extends WeakReference<T> implements DragHandler {
-    final DoubleProperty minX, maxX;
-    final DoubleProperty minY, maxY;
-    final DoubleProperty borderWidth;
-    final BooleanProperty enable;
+  private abstract static class BaseDrag<T> extends WeakReference<T> implements DragHandler {
+    final DoubleProperty minX = new SimpleDoubleProperty(this, "minX", 0);
+    final DoubleProperty maxX = new SimpleDoubleProperty(this, "maxX", Double.MAX_VALUE);
+    final DoubleProperty minY = new SimpleDoubleProperty(this, "minY", 0);
+    final DoubleProperty maxY = new SimpleDoubleProperty(this, "maxY", Double.MAX_VALUE);
+    final DoubleProperty borderWidth = new SimpleDoubleProperty(this, "borderWidth", 3);
+    final BooleanProperty enable = new SimpleBooleanProperty(this, "enable", true);
     double startX;
     double startY;
     boolean pressed;
 
     public BaseDrag(T t) {
       super(t);
-      this.minX = new SimpleDoubleProperty(0);
-      this.minY = new SimpleDoubleProperty(0);
-      this.maxX = new SimpleDoubleProperty(Double.MAX_VALUE);
-      this.maxY = new SimpleDoubleProperty(Double.MAX_VALUE);
-      this.borderWidth = new SimpleDoubleProperty(3);
-      this.enable = new SimpleBooleanProperty(true);
     }
 
     @Override
@@ -133,7 +129,7 @@ public class DragSupport {
     @Override
     public void press(MouseEvent e) {
       Node node = get();
-      if (isEnable() && e.isConsumed() == false && node != null) {
+      if (isEnable() && !e.isConsumed() && node != null) {
         Bounds boundsInLocal = node.getBoundsInLocal();
         if (canDrag(node.screenToLocal(e.getScreenX(), e.getScreenY()), boundsInLocal.getMaxX(), boundsInLocal.getMaxY())) {
           startX = e.getScreenX() - node.getLayoutX();
@@ -147,7 +143,7 @@ public class DragSupport {
     @Override
     public void drag(MouseEvent e) {
       Node node = get();
-      if (pressed && isEnable() && e.isConsumed() == false && node != null) {
+      if (pressed && isEnable() && !e.isConsumed() && node != null) {
         node.setLayoutX(MathUtil.toRange(e.getScreenX() - startX, minX.get(), maxX.get()));
         node.setLayoutY(MathUtil.toRange(e.getScreenY() - startY, minY.get(), maxY.get()));
         e.consume();
@@ -175,7 +171,7 @@ public class DragSupport {
     @Override
     public void press(MouseEvent e) {
       Window window = get();
-      if (isEnable() && e.isConsumed() == false && window != null) {
+      if (isEnable() && !e.isConsumed() && window != null) {
         if (canDrag(new Point2D(e.getSceneX(), e.getSceneY()), window.getX() + window.getWidth(),
             window.getY() + window.getHeight())) {
           startX = e.getScreenX() - window.getX();
@@ -189,7 +185,7 @@ public class DragSupport {
     @Override
     public void drag(MouseEvent e) {
       Window window = get();
-      if (pressed && isEnable() && e.isConsumed() == false && window != null) {
+      if (pressed && isEnable() && !e.isConsumed() && window != null) {
         window.setX(MathUtil.toRange(e.getScreenX() - startX, minX.get(), maxX.get()));
         window.setY(MathUtil.toRange(e.getScreenY() - startY, minY.get(), maxY.get()));
         e.consume();

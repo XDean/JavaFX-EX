@@ -22,8 +22,6 @@ import javafx.beans.binding.MapBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ListProperty;
-import javafx.beans.property.MapProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -47,7 +45,8 @@ import xdean.jfxex.bean.property.StringPropertyEX;
  * @author XDean
  *
  */
-public class BeanUtil {
+public enum BeanUtil {
+  ;
 
   private static <F, T, P extends Property<T>, Q extends P> Q nestProp(ObservableValue<F> owner, Function<F, P> selector,
       Q newProp) {
@@ -58,7 +57,7 @@ public class BeanUtil {
       newProp.bindBidirectional(current);
     }
     owner.addListener((ob, o, n) -> {
-      CacheUtil.<Property<T>> remove(BeanUtil.class, newProp).ifPresent(p -> newProp.unbindBidirectional(p));
+      CacheUtil.<Property<T>> remove(BeanUtil.class, newProp).ifPresent(newProp::unbindBidirectional);
       if (n == null) {
         newProp.setValue(null);
       } else {
@@ -116,7 +115,8 @@ public class BeanUtil {
         bind(owner);
         F value = owner.getValue();
         if (value != null) {
-          this.bind(current = selector.apply(value));
+          current = selector.apply(value);
+          this.bind(current);
         }
       }
 
@@ -217,18 +217,21 @@ public class BeanUtil {
    *
    * @see #nestProp(ObservableValue, Function)
    */
-  public static <F, T> ListPropertyEX<T> nestListProp(ObservableValue<F> owner, Function<F, ListProperty<T>> selector) {
+  public static <F, T> ListPropertyEX<T> nestListProp(ObservableValue<F> owner,
+      Function<F, Property<ObservableList<T>>> selector) {
     ListPropertyEX<T> nestProp = new ListPropertyEX<>();
     F value = owner.getValue();
     if (value != null) {
-      ListProperty<T> current = selector.apply(value);
+      Property<ObservableList<T>> current = selector.apply(value);
       CacheUtil.set(BeanUtil.class, nestProp, current);
       nestProp.bindBidirectional(current);
     }
     owner.addListener((ob, o, n) -> {
-      CacheUtil.<ListProperty<T>> remove(BeanUtil.class, nestProp).ifPresent(p -> nestProp.unbindBidirectional(p));
-      if (n != null) {
-        ListProperty<T> pt = selector.apply(n);
+      CacheUtil.<Property<ObservableList<T>>> remove(BeanUtil.class, nestProp).ifPresent(nestProp::unbindBidirectional);
+      if (n == null) {
+        nestProp.set(FXCollections.emptyObservableList());
+      } else {
+        Property<ObservableList<T>> pt = selector.apply(n);
         CacheUtil.set(BeanUtil.class, nestProp, pt);
         nestProp.bindBidirectional(pt);
       }
@@ -241,17 +244,19 @@ public class BeanUtil {
    *
    * @see #nestValue(ObservableValue, Function)
    */
-  public static <F, T> ListBinding<T> nestListValue(ObservableValue<F> owner, Function<F, ObservableList<T>> selector) {
+  public static <F, T> ListBinding<T> nestListValue(ObservableValue<F> owner, Function<F, ObservableList<? extends T>> selector) {
     return new ListBinding<T>() {
-      ObservableList<T> current;
+      ObservableList<? extends T> current;
       {
         bind(owner);
         F value = owner.getValue();
         if (value != null) {
-          this.bind(current = selector.apply(value));
+          current = selector.apply(value);
+          this.bind(current);
         }
       }
 
+      @SuppressWarnings("unchecked")
       @Override
       protected ObservableList<T> computeValue() {
         if (current != null) {
@@ -262,7 +267,7 @@ public class BeanUtil {
         if (value != null) {
           current = selector.apply(value);
           this.bind(current);
-          return current;
+          return (ObservableList<T>) current;
         } else {
           return FXCollections.emptyObservableList();
         }
@@ -275,7 +280,8 @@ public class BeanUtil {
    *
    * @see #nestProp(ObservableValue, Function)
    */
-  public static <F, K, V> MapPropertyEX<K, V> nestMapProp(ObservableValue<F> owner, Function<F, MapProperty<K, V>> selector) {
+  public static <F, K, V> MapPropertyEX<K, V> nestMapProp(ObservableValue<F> owner,
+      Function<F, Property<ObservableMap<K, V>>> selector) {
     return nestProp(owner, selector, new MapPropertyEX<>());
   }
 
@@ -291,7 +297,8 @@ public class BeanUtil {
         bind(owner);
         F value = owner.getValue();
         if (value != null) {
-          this.bind(current = selector.apply(value));
+          current = selector.apply(value);
+          this.bind(current);
         }
       }
 

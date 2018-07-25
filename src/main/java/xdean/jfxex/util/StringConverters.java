@@ -15,7 +15,7 @@ import xdean.jex.extra.tryto.Try;
  * @author Dean Xu (XDean@github.com)
  *
  */
-public class StringConverters {
+public interface StringConverters {
   /**
    * Create {@link StringConverter} from format and parse {@link Function}
    * 

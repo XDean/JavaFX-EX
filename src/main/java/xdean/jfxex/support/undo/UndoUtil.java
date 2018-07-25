@@ -1,4 +1,4 @@
-package xdean.jfxex.support.undoRedo;
+package xdean.jfxex.support.undo;
 
 import java.lang.ref.WeakReference;
 import java.util.function.BiConsumer;
@@ -7,17 +7,19 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import xdean.jfxex.support.undoRedo.Undoable.Response;
+import xdean.jfxex.support.undo.Undoable.Response;
 
-//TODO Exception?
-public class UndoUtil {
+// TODO Exception?
+public enum UndoUtil {
+  ;
+  
   public static <O, T> Function<T, Response> weakConsumer(O weakObject, BiConsumer<O, T> func) {
-    Weak<O> weak = new Weak<O>(weakObject);
+    Weak<O> weak = new Weak<>(weakObject);
     return t -> weak.doIfPresentConsumer(o -> func.accept(o, t));
   }
 
   public static <O, T> Function<T, Response> weakFunction(O weakObject, BiFunction<O, T, Response> func) {
-    Weak<O> weak = new Weak<O>(weakObject);
+    Weak<O> weak = new Weak<>(weakObject);
     return t -> weak.doIfPresentFunction(o -> func.apply(o, t));
   }
 
@@ -29,7 +31,7 @@ public class UndoUtil {
    * @return
    */
   public static <O, T> Function<T, Response> weakPredicate(O weakObject, BiFunction<O, T, Boolean> func) {
-    Weak<O> weak = new Weak<O>(weakObject);
+    Weak<O> weak = new Weak<>(weakObject);
     return t -> weak.doIfPresentPredicate(o -> func.apply(o, t));
   }
 
