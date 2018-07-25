@@ -2,7 +2,6 @@ package xdean.jfxex.support;
 
 import java.lang.ref.WeakReference;
 import java.util.Map;
-import java.util.Optional;
 import java.util.WeakHashMap;
 
 import javafx.beans.property.BooleanProperty;
@@ -38,7 +37,7 @@ public class DragSupport {
     void unbind();
   }
 
-  private interface DragHandle extends DragConfig {
+  private interface DragHandler extends DragConfig {
     void press(MouseEvent e);
 
     void drag(MouseEvent e);
@@ -46,7 +45,21 @@ public class DragSupport {
     void release(MouseEvent e);
   }
 
-  private static abstract class BaseDrag<T> extends WeakReference<T> implements DragHandle {
+  private static class DragHandlerWrapper {
+    final DragHandler dragHandler;
+    final EventHandler<MouseEvent> press;
+    final EventHandler<MouseEvent> drag;
+    final EventHandler<MouseEvent> release;
+
+    public DragHandlerWrapper(DragHandler dragHandler) {
+      this.dragHandler = dragHandler;
+      this.press = dragHandler::press;
+      this.drag = dragHandler::drag;
+      this.release = dragHandler::release;
+    }
+  }
+
+  private static abstract class BaseDrag<T> extends WeakReference<T> implements DragHandler {
     final DoubleProperty minX, maxX;
     final DoubleProperty minY, maxY;
     final DoubleProperty borderWidth;
@@ -163,7 +176,8 @@ public class DragSupport {
     public void press(MouseEvent e) {
       Window window = get();
       if (isEnable() && e.isConsumed() == false && window != null) {
-        if (canDrag(new Point2D(e.getSceneX(), e.getSceneY()), window.getX() + window.getWidth(), window.getY() + window.getHeight())) {
+        if (canDrag(new Point2D(e.getSceneX(), e.getSceneY()), window.getX() + window.getWidth(),
+            window.getY() + window.getHeight())) {
           startX = e.getScreenX() - window.getX();
           startY = e.getScreenY() - window.getY();
           e.consume();
@@ -191,41 +205,41 @@ public class DragSupport {
     }
   }
 
-  private static Map<EventTarget, DragHandle> map = new WeakHashMap<>();
+  private static final Map<EventTarget, DragHandlerWrapper> HANDLER_MAP = new WeakHashMap<>();
 
   public static DragConfig bind(Node node) {
-    node.addEventHandler(MouseEvent.MOUSE_PRESSED, press);
-    node.addEventHandler(MouseEvent.MOUSE_DRAGGED, drag);
-    node.addEventHandler(MouseEvent.MOUSE_RELEASED, release);
-    DragHandle dragConfig = new NodeDrag(node);
-    map.put(node, dragConfig);
-    return dragConfig;
+    DragHandlerWrapper handler = new DragHandlerWrapper(new NodeDrag(node));
+    HANDLER_MAP.put(node, handler);
+    node.addEventHandler(MouseEvent.MOUSE_PRESSED, handler.press);
+    node.addEventHandler(MouseEvent.MOUSE_DRAGGED, handler.drag);
+    node.addEventHandler(MouseEvent.MOUSE_RELEASED, handler.release);
+    return handler.dragHandler;
   }
 
   public static DragConfig bind(Window window) {
-    window.addEventHandler(MouseEvent.MOUSE_PRESSED, press);
-    window.addEventHandler(MouseEvent.MOUSE_DRAGGED, drag);
-    window.addEventHandler(MouseEvent.MOUSE_RELEASED, release);
-    DragHandle dragConfig = new WindowDrag(window);
-    map.put(window, dragConfig);
-    return dragConfig;
+    DragHandlerWrapper handler = new DragHandlerWrapper(new WindowDrag(window));
+    HANDLER_MAP.put(window, handler);
+    window.addEventHandler(MouseEvent.MOUSE_PRESSED, handler.press);
+    window.addEventHandler(MouseEvent.MOUSE_DRAGGED, handler.drag);
+    window.addEventHandler(MouseEvent.MOUSE_RELEASED, handler.release);
+    return handler.dragHandler;
   }
 
   public static void unbind(Node node) {
-    node.removeEventHandler(MouseEvent.MOUSE_PRESSED, press);
-    node.removeEventHandler(MouseEvent.MOUSE_DRAGGED, drag);
-    node.removeEventHandler(MouseEvent.MOUSE_RELEASED, release);
-    map.remove(node);
+    DragHandlerWrapper handler = HANDLER_MAP.remove(node);
+    if (handler != null) {
+      node.removeEventHandler(MouseEvent.MOUSE_PRESSED, handler.press);
+      node.removeEventHandler(MouseEvent.MOUSE_DRAGGED, handler.drag);
+      node.removeEventHandler(MouseEvent.MOUSE_RELEASED, handler.release);
+    }
   }
 
   public static void unbind(Window window) {
-    window.removeEventHandler(MouseEvent.MOUSE_PRESSED, press);
-    window.removeEventHandler(MouseEvent.MOUSE_DRAGGED, drag);
-    window.removeEventHandler(MouseEvent.MOUSE_RELEASED, release);
-    map.remove(window);
+    DragHandlerWrapper handler = HANDLER_MAP.remove(window);
+    if (handler != null) {
+      window.removeEventHandler(MouseEvent.MOUSE_PRESSED, handler.press);
+      window.removeEventHandler(MouseEvent.MOUSE_DRAGGED, handler.drag);
+      window.removeEventHandler(MouseEvent.MOUSE_RELEASED, handler.release);
+    }
   }
-
-  private static final EventHandler<MouseEvent> press = e -> Optional.ofNullable(map.get(e.getSource())).ifPresent(d -> d.press(e));
-  private static final EventHandler<MouseEvent> drag = e -> Optional.ofNullable(map.get(e.getSource())).ifPresent(d -> d.drag(e));
-  private static final EventHandler<MouseEvent> release = e -> Optional.ofNullable(map.get(e.getSource())).ifPresent(d -> d.release(e));
 }
