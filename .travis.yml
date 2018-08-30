@@ -10,10 +10,12 @@ addons:
   apt:
     packages:
     - oracle-java8-installer
+  sonarcloud:
+    organization: xdean-github
 install: true
 before_script:
 - if [[ "${TRAVIS_OS_NAME}" == linux ]]; then export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start; fi
 script:
-- mvn clean package -P jacoco
+- mvn clean package sonar:sonar -P jacoco
 after_success:
 - bash <(curl -s https://codecov.io/bash)
